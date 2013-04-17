@@ -1,0 +1,40 @@
+//
+// Prefix header for all source files of the 'Gyde' target in the 'Gyde' project
+//
+
+#import <Availability.h>
+
+#ifndef __IPHONE_3_0
+#warning "This project uses features only available in iOS SDK 3.0 and later."
+#endif
+
+#ifdef __OBJC__
+    #import <UIKit/UIKit.h>
+    #import <Foundation/Foundation.h>
+    #import <CoreData/CoreData.h>
+    #import "NSManagedObject+Gyde.h"
+
+    #import "Flurry.h"
+    #import "MBProgressHUD.h"
+
+#import "GlooRequestManager.h"
+#import "FacebookHelper.h"
+#import "NSString+Gyde.h"
+
+    #import "AppDelegate.h"
+    #import "User.h"
+    #import "Tag.h"
+    #import "Notification.h"
+    #import "Guide.h"
+    #import "Photo.h"
+    #import "Venue.h"
+    #import "City.h"
+
+#import "User+Gyde.h"
+#import "Tag+Gyde.h"
+#import "Notification+Gyde.h"
+#import "Guide+Gyde.h"
+#import "Photo+Gyde.h"
+#import "City+Gyde.h"
+#import "Venue+Gyde.h"
+#endif
