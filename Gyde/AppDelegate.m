@@ -445,6 +445,27 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 
 #pragma LOGIN METHODS
 
+- (void)addNavbarAppearanceProxies {
+    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navbar.png"] forBarMetrics:UIBarMetricsDefault];
+    
+    [[UIBarButtonItem appearance] setBackgroundImage:[[UIImage imageNamed:@"navbarButton.png"]
+                                                      resizableImageWithCapInsets:UIEdgeInsetsMake(14, 4, 14, 4)]
+                                            forState:UIControlStateNormal
+                                          barMetrics:UIBarMetricsDefault];
+    
+    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:[[UIImage imageNamed:@"navbarBack.png"]
+                                                                resizableImageWithCapInsets:UIEdgeInsetsMake(14, 14, 14, 4)]
+                                                      forState:UIControlStateNormal
+                                                    barMetrics:UIBarMetricsDefault];
+}
+
+- (void)removeNavbarAppearanceProxies {
+    [[UINavigationBar appearance] setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+}
+
+
 - (NSArray *)serializeGuideData:(NSArray *)newGuides {
 	
 	NSMutableArray *returnArray = [NSMutableArray array];

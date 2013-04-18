@@ -1146,6 +1146,8 @@
 						<string key="followingUserButtonTapped:">id</string>
 						<string key="goBack:">id</string>
 						<string key="guidesButtonTapped:">id</string>
+						<string key="lovedGuidesButtonTapped:">id</string>
+						<string key="lovedPlacesButtonTapped:">id</string>
 						<string key="myContentButtonTapped:">id</string>
 						<string key="photosButtonTapped:">id</string>
 						<string key="placesButtonTapped:">id</string>
@@ -1177,6 +1179,14 @@
 						</object>
 						<object class="IBActionInfo" key="guidesButtonTapped:">
 							<string key="name">guidesButtonTapped:</string>
+							<string key="candidateClassName">id</string>
+						</object>
+						<object class="IBActionInfo" key="lovedGuidesButtonTapped:">
+							<string key="name">lovedGuidesButtonTapped:</string>
+							<string key="candidateClassName">id</string>
+						</object>
+						<object class="IBActionInfo" key="lovedPlacesButtonTapped:">
+							<string key="name">lovedPlacesButtonTapped:</string>
 							<string key="candidateClassName">id</string>
 						</object>
 						<object class="IBActionInfo" key="myContentButtonTapped:">

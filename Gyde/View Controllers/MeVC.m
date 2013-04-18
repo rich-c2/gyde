@@ -165,17 +165,13 @@
 		// Start fetching the Profile API
 		// if we're not already loading it.
 		if (!loading && !profileLoaded) {
-			
-			//[self showLoading];
-			
+						
 			[self loadUserDetails];
 		}
 		
 		// Init the "Uploads" API
 		if (!uploadsLoaded && self.placesScrollView.alpha > 0.0) {
-            
-            //[self showLoadingWithStatus:@"Loading places" inView:self.placesScrollView];
-            
+                        
 			[self initUploadsAPI];
             [self initLovedPlacesAPI];
 		}
@@ -339,22 +335,6 @@
 
 #pragma GridImageDelegate methods
 
-//- (void)gridImageButtonClicked:(NSInteger)viewTag {
-//	
-//	Photo *photo = [self.photos objectAtIndex:(viewTag - IMAGE_VIEW_TAG)];
-//    
-//    if (!self.managedObjectContext) self.managedObjectContext = [self appDelegate].managedObjectContext;
-//	
-//	// Push the Image Details VC onto the stack
-//	TAScrollVC *horizontalScroll = [[TAScrollVC alloc] initWithNibName:@"TAScrollVC" bundle:nil];
-//    [horizontalScroll setManagedObjectContext:[self managedObjectContext]];
-//	[horizontalScroll setPhotos:self.photos];
-//	[horizontalScroll setSelectedPhotoID:[photo photoID]];
-//	
-//	[self.navigationController pushViewController:horizontalScroll animated:YES];
-//}
-
-
 - (void)gridImageButtonTapped:(id)sender {
 
     Photo *photo = objc_getAssociatedObject(sender, "photo");
@@ -373,11 +353,6 @@
 
 
 #pragma mark MY-METHODS
-
-- (IBAction)goBack:(id)sender {
-    
-	[self.navigationController popViewControllerAnimated:YES];
-}
 
 - (void)initLoginObserver {
 	
@@ -436,13 +411,6 @@
         
 		[self clearUIFields];
 	}
-}
-
-
-- (void)initTestData {
-    
-	// For now, set the username to be whoever is logged-in
-	self.username = [self appDelegate].loggedInUsername;
 }
 
 
@@ -919,7 +887,7 @@
 		self.modePointerView.frame = newFrame;
 		self.guidesTable.alpha = guidesAlpha;
         self.lovedPlacesScrollView.alpha = lovedPlacesAlpha;
-        self.guidesTable.alpha = guidesAlpha;
+        self.lovedGuidesTable.alpha = guidesAlpha;
 		
 	} completion:^(BOOL finished) {
 		
@@ -959,12 +927,7 @@
 		
 		[self fadeView:self.guidesTable alpha:1.0 duration:ANIMATION_DURATION];
 		
-		if (!guidesLoaded) {
-			
-			[self showLoadingWithStatus:@"Loading guides" inView:self.guidesTable];
-			
-			[self initMyGuidesAPI];
-		}
+		[self initMyGuidesAPI];
 	}];
 }
 
@@ -1024,12 +987,7 @@
 		
 		[self fadeView:self.lovedGuidesTable alpha:1.0 duration:ANIMATION_DURATION];
 		
-		if (!guidesLoaded) {
-			
-			[self showLoadingWithStatus:@"Loading guides" inView:self.guidesTable];
-			
-			[self initLovedGuidesAPI];
-		}
+		[self initLovedGuidesAPI]; 
 	}];
 }
 
@@ -1058,6 +1016,15 @@
 	
 	// How many have already thumbs have been added previously?
 	NSInteger subviewsCount = [scrollView.subviews count];
+    
+    // Clear previous subviews for now...
+    if (subviewsCount > 0) {
+    
+        for (UIView *view in scrollView.subviews)
+             [view removeFromSuperview];
+    }
+    
+    
 	
 	// Set what the next tag value should be
 	NSInteger tagCounter = IMAGE_VIEW_TAG + subviewsCount;
@@ -1290,128 +1257,45 @@
 }
 
 
-
 - (void)initMyGuidesAPI {
-	
-	NSString *postString = [NSString stringWithFormat:@"username=%@&token=%@", self.username, [[self appDelegate] sessionToken]];
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"MyGuides";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	guidesFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-												   receiver:self action:@selector(receivedMyGuidesResponse:)];
-	[guidesFetcher start];
+    
+    NSDictionary *params = @{ @"username" : self.username, @"token" : [[self appDelegate] sessionToken] };
+    
+    [[GlooRequestManager sharedManager] post:@"MyGuides"
+                                      params:params
+                               dataLoadBlock:^(NSDictionary *json){}
+                             completionBlock:^(NSDictionary *json){
+                                 
+                                 if (json.count != 0) {
+                                     
+                                     NSArray *guidesArray = json[@"guides"];
+                                     self.guides = (NSMutableArray *)[[self appDelegate] serializeGuideData:guidesArray];
+                                     [self.guidesTable reloadData];
+                                 }
+                             }
+                                  viewForHUD:self.guidesTable];
 }
 
 
-// Example fetcher response handling
-- (void)receivedMyGuidesResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	NSAssert(aFetcher == guidesFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	NSLog(@"PRINTING MY GUIDES:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-    
-    if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		guidesLoaded = YES;
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		NSArray *guidesArray = [results objectForKey:@"guides"];
-        
-		self.guides = (NSMutableArray *)[[self appDelegate] serializeGuideData:guidesArray];
-		
-	}
-	
-	[self finishedMyGuidesRequest];
-	
-	guidesFetcher = nil;
-}
-
-
-#warning TO DO
 - (void)initLovedGuidesAPI {
-
-    NSString *postString = [NSString stringWithFormat:@"type=guide&username=%@&pg=0&sz=10", self.username];
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"loved";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	lovedGuidesFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-												   receiver:self action:@selector(receivedLovedGuidesResponse:)];
-	[lovedGuidesFetcher start];
-
-}
-
-// Example fetcher response handling
-- (void)receivedLovedGuidesResponse:(HTTPFetcher *)aFetcher {
     
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	NSAssert(aFetcher == lovedGuidesFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	NSLog(@"PRINTING LOVED GUIDES:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
+    NSDictionary *params = @{ @"type" : @"guide", @"username" : self.username, @"pg" : @"0", @"sz" : @"10" };
     
-    if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		guidesLoaded = YES;
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		NSArray *guidesArray = [results objectForKey:@"guides"];
-        
-		self.lovedGuides = (NSMutableArray *)[[self appDelegate] serializeGuideData:guidesArray];
-		
-	}
-	
-	[self finishedLovedGuidesRequest];
-	
-	lovedGuidesFetcher = nil;
-}
-
-- (void)finishedLovedGuidesRequest {
+    [[GlooRequestManager sharedManager] post:@"loved"
+                                      params:params
+                               dataLoadBlock:^(NSDictionary *json){}
+                             completionBlock:^(NSDictionary *json){
+                                 
+                                 if (json.count != 0) {
+                                     
+                                     NSArray *guidesArray = json[@"guides"];
+                                     self.lovedGuides = (NSMutableArray *)[[self appDelegate] serializeGuideData:guidesArray];
+                                     [self.lovedGuidesTable reloadData];
+                                 }
+                             }
+                                  viewForHUD:self.lovedGuidesTable];
     
-	[self.lovedGuidesTable reloadData];
-	
-	[self hideLoading];
-}
 
-
-- (void)finishedMyGuidesRequest {
-	
-	[self.guidesTable reloadData];
-	
-	[self hideLoading];
 }
 
 

@@ -12,7 +12,7 @@
 @class HTTPFetcher;
 @class ProfileGuidesTableCell;
 
-@interface MeVC : UIViewController {
+@interface MeVC : UIViewController <GridImageDelegate> {
 
     // Data
 	HTTPFetcher *profileFetcher;
@@ -21,8 +21,6 @@
 	HTTPFetcher *followFetcher;
 	HTTPFetcher *lovedPhotosFetcher;
     HTTPFetcher *uploadsFetcher;
-	HTTPFetcher *guidesFetcher;
-    HTTPFetcher *lovedGuidesFetcher;
 	
 	NSMutableArray *photos;
     NSMutableArray *lovedPhotos;

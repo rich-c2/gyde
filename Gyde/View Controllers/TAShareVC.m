@@ -535,16 +535,15 @@
                                          
                                          if (self.shareOnTwitter) {
                                          
-                                             NSString *initialText = @"";//[NSString stringWithFormat:@"Via Gyde for iOS: %@", currPhoto.venue.title];
+#warning TO DO: attach place name to "initial text"
+                                             NSString *initialText = @"";
                                              [self sharePhotoOnTwitterWithText:initialText];
                                          }
                                          
                                          if (postToFacebook) {
                                              
                                              // Post a status update to the user's feed via the Graph API, and display an alert view
-                                             // with the results or an error.
-                                             //NSString *name = [[User userWithUsername:[self appDelegate].loggedInUsername inManagedObjectContext:[self appDelegate].managedObjectContext] fullName];
-                                             
+                                             // with the results or an error.                                             
                                              NSString *message = @"Gyde for iOS.";
                                              
                                              NSDictionary *mediaDict = json[@"media"];
@@ -612,131 +611,6 @@
 		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry!" message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
 		[alert show];
 	}
-}
-
-
-- (NSMutableURLRequest *)createSubmitRequest:(NSURL *)requestURL {
-	
-	NSMutableURLRequest *request =(NSMutableURLRequest*)[NSMutableURLRequest requestWithURL:requestURL cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0];
-	[request setHTTPMethod:@"POST"];	
-	
-	/*
-	 Set Header and content type of your request.
-	 */
-	NSString *boundary = @"---------------------------14737809831466499882746641449";
-	NSString *boundaryString = [NSString stringWithFormat:@"\r\n--%@\r\n",boundary];
-	NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
-	[request addValue:contentType forHTTPHeaderField: @"Content-Type"];
-	
-	
-	/*
-	 now lets create the body of the request.
-	 */
-	NSMutableData *body = [NSMutableData data];
-	[body appendData:[boundaryString dataUsingEncoding:NSUTF8StringEncoding]];
-	
-	
-	NSMutableDictionary *bodyData = [NSMutableDictionary dictionary];
-	
-	// Caption
-	[bodyData setObject:self.captionField.text forKey:@"caption"];
-	
-	// Username
-	NSString *username = [[self appDelegate] loggedInUsername];
-	[bodyData setObject:username forKey:@"username"];
-	
-	// Session token
-	NSString *token = [[self appDelegate] sessionToken];
-	[bodyData setObject:token forKey:@"token"];
-	
-	// Latitude
-	NSString *latString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.latitude];
-	[bodyData setObject:latString forKey:@"latitude"];
-	
-	// Longitude
-	NSString *lonString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.longitude];
-	[bodyData setObject:lonString forKey:@"longitude"];
-	
-	
-	// RECOMMEND?
-	if ([self.recommendToUsernames count] > 0) {
-		
-		NSString *recType = [NSString stringWithFormat:@"%i", 0];
-		[bodyData setObject:recType forKey:@"rectype"];
-		
-		NSString *usernames = [NSString stringWithFormat:@"%@", [self.recommendToUsernames componentsJoinedByString:@","]];
-		[bodyData setObject:usernames forKey:@"rec_usernames"];
-	}
-	
-	
-	if (self.placeData) {
-	
-		NSDictionary *locationData = [self.placeData objectForKey:@"location"];
-	
-		NSString *placeTitle = [self.placeData objectForKey:@"name"];
-		[bodyData setObject:placeTitle forKey:@"place_title"];
-		
-		NSString *address = [locationData objectForKey:@"address"];
-		[bodyData setObject:address forKey:@"place_address"];
-		
-		NSString *city = [locationData objectForKey:@"city"];
-		[bodyData setObject:city forKey:@"place_city"];
-		
-		NSString *state = [locationData objectForKey:@"state"];
-		[bodyData setObject:state forKey:@"place_state"];
-		
-		NSString *country = [locationData objectForKey:@"country"];
-		[bodyData setObject:country forKey:@"place_country"];
-		
-		NSString *postalCode = [locationData objectForKey:@"postalCode"];
-		[bodyData setObject:postalCode forKey:@"place_postcode"];
-		
-		NSString *verified = [self.placeData objectForKey:@"verified"];
-		[bodyData setObject:verified forKey:@"verified"];
-	}
-	
-	
-	// Tag
-	NSString *tagString = [NSString stringWithFormat:@"%i", [self.selectedTag.tagID intValue]];
-	[bodyData setObject:tagString forKey:@"tag"];
-	
-	// City
-	NSString *cityString = [NSString stringWithFormat:@"%@", self.selectedCity];
-	[bodyData setObject:cityString forKey:@"city"];
-	
-	// Type
-	[bodyData setObject:@"image" forKey:@"type"];
-	
-	
-	// Loop through the keys of the dictionary of body data
-	// and add to the body of the request with the data properly formatted
-	NSArray *keys = [bodyData allKeys];
-	
-	for (int i = 0; i < [keys count]; i++) {
-		
-		NSString *key = [keys objectAtIndex:i];
-		NSString *val = [bodyData objectForKey:key];
-	
-		NSString *formattedStr = [NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n%@", key, val];
-	
-		[body appendData:[formattedStr dataUsingEncoding:NSUTF8StringEncoding]];
-		[body appendData:[boundaryString dataUsingEncoding:NSUTF8StringEncoding]];
-	} 
-	
-	
-	// IMAGE
-	NSNumber *randomNum = [self generateRandomNumberWithMax:100000];
-	NSString *imageFilename = [NSString stringWithFormat:@"%i", [randomNum intValue]];
-	[body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"file\"; filename=\"%@.jpg\"\r\n", imageFilename] dataUsingEncoding:NSUTF8StringEncoding]];
-	[body appendData:[[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
-	[body appendData:[NSData dataWithData:UIImageJPEGRepresentation(self.photo, 0.7)]];
-	[body appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	
-	
-	[request setHTTPBody:body];
-	[request setValue:[NSString stringWithFormat:@"%d", [body length]] forHTTPHeaderField:@"Content-Length"]; 
-	
-	return request;
 }
 
 
@@ -853,95 +727,6 @@
                                    }
                                    
                                }];
-}
-
-
-- (void)retrieveLocationData {
-	
-	// Create JSON call to retrieve dummy City values
-	NSString *methodName = @"geocode";
-	NSString *yahooURL = @"http://where.yahooapis.com/";
-	NSString *yahooAPIKey = @"UvRWaq30";
-	
-	NSString *urlString = [NSString stringWithFormat:@"%@%@?q=%f,%f&gflags=R&appid=%@", yahooURL, methodName, self.currentLocation.coordinate.latitude, self.currentLocation.coordinate.longitude, yahooAPIKey];
-	//NSLog(@"YAHOO URL:%@", urlString);
-	
-	NSURL *url = [urlString convertToURL];
-	
-	// Create the request.
-	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-														   cachePolicy:NSURLRequestUseProtocolCachePolicy
-													   timeoutInterval:45.0];
-	[request setValue:@"text/xml" forHTTPHeaderField:@"Content-Type"];
-	[request setHTTPMethod:@"GET"];
-    
-    if (cityFetcher) {
-        
-		[cityFetcher cancel];
-		cityFetcher = nil;
-	}
-	
-	// XML Fetcher
-	cityFetcher = [[XMLFetcher alloc] initWithURLRequest:request xPathQuery:@"//ResultSet" receiver:self action:@selector(receivedYahooResponse:)];
-	[cityFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedYahooResponse:(XMLFetcher *)aFetcher {
-    
-    if (![aFetcher isEqual:cityFetcher])
-        return;
-	
-	BOOL requestSuccess = NO;
-	BOOL errorDected = NO;
-	
-	//NSLog(@"PRINTING YAHOO DATA:%@",[[NSString alloc] initWithData:theXMLFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	// IF STATUS CODE WAS OKAY (200)
-	if ([cityFetcher statusCode] == 200) {
-		
-		// XML Data was returned from the API successfully
-		if (([cityFetcher.data length] > 0) && ([cityFetcher.results count] > 0)) {
-			
-			requestSuccess = YES;
-			
-			XPathResultNode *versionsNode = [cityFetcher.results lastObject];
-			
-			// loop through the children of the <registration> node
-			for (XPathResultNode *child in versionsNode.childNodes) {
-				
-				if ([[child name] isEqualToString:@"ErrorMessage"]) {
-					
-					errorDected = ([[child contentString] isEqualToString:@"No error"] ? NO : YES);
-				}
-				
-				else if ([[child name] isEqualToString:@"Result"]) {
-					
-					for (XPathResultNode *childNode in child.childNodes) {
-						
-						if ([[childNode name] isEqualToString:@"city"] && [[childNode contentString] length] > 0) { 
-							
-							self.selectedCity = [childNode contentString];
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	if (requestSuccess && !errorDected && [self.selectedCity length] > 0) {
-		
-		[self.cityLabel setText:[NSString stringWithFormat:@"We have detected that you are in %@.", self.selectedCity]];
-	}
-	else {
-    
-        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Location error" message:@"There was an error calculating your current city. Please check your network connection." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-        [av show];
-    }
-	   
-    cityFetcher = nil;
-	
 }
 
 
@@ -1190,31 +975,6 @@
 }
 
 
-// Post Photo button handler; will attempt to invoke the native
-// share dialog and, if that's unavailable, will post directly
-/*- (IBAction)postPhotoClick:(UIButton *)sender {
- 
-    // Just use the icon image from the application itself.  A real app would have a more
-    // useful way to get an image.
-    UIImage *img = [UIImage imageNamed:@"Icon@2x.png"];
-    
-    // if it is available to us, we will post using the native dialog
-    BOOL displayedNativeDialog = [FBNativeDialogs presentShareDialogModallyFrom:self
-                                                                    initialText:nil
-                                                                          image:img
-                                                                            url:nil
-                                                                        handler:nil];
-    if (!displayedNativeDialog) {
-        [self performPublishAction:^{
-            
-            [FBRequestConnection startForUploadPhoto:img
-                                   completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
-                                       [self showAlert:@"Photo Post" result:result error:error];
-                                   }];
-        }];
-    }
-}*/
-
 // UIAlertView helper for post buttons
 - (void)showAlert:(NSString *)message result:(id)result
             error:(NSError *)error {
@@ -1287,7 +1047,10 @@
 // this app.
 - (IBAction)checkFacebookSession:(id)sender {
     
-    postToFacebook = YES;
+    postToFacebook = !postToFacebook;
+    
+    if (!postToFacebook)
+        return;
 
     if (!FBSession.activeSession.isOpen) {
         
@@ -1321,60 +1084,6 @@
              if (!error) { }
          }];
     }
-}
-
-- (IBAction)initFacebookLogin:(id)sender {
-
-    // get the app delegate so that we can access the session property
-    AppDelegate *appDelegate = [self appDelegate];
-    
-    // this button's job is to flip-flop the session from open to closed
-    if (appDelegate.session.isOpen) {
-        
-        // if a user logs out explicitly, we delete any cached token information, and next
-        // time they run the applicaiton they will be presented with log in UX again; most
-        // users will simply close the app or switch away, without logging out; this will
-        // cause the implicit cached-token login to occur on next launch of the application
-        [appDelegate.session closeAndClearTokenInformation];
-        
-    } else {
-        
-        if (appDelegate.session.state != FBSessionStateCreated) {
-            // Create a new, logged out session.
-            appDelegate.session = [[FBSession alloc] init];
-        }
-        
-        // if the session isn't open, let's open it now and present the login UX to the user
-        [appDelegate.session openWithCompletionHandler:^(FBSession *session,
-                                                         FBSessionState status,
-                                                         NSError *error) {
-            [self displayLoginResult];
-        }];
-    }
-}
-
-
-- (void)displayLoginResult {
-
-    // get the app delegate, so that we can reference the session property
-    AppDelegate *appDelegate = [self appDelegate];
-    
-    NSString *title;
-    NSString *message;
-    
-    if (appDelegate.session.isOpen) {
-        
-        title = @"You are logged-in";
-        message = @"You successfully established a FB session.";
-    }
-    else {
-        
-        title = @"You are NOT logged-in";
-        message = @"Something went wrong with FB.";
-    }
-    
-    UIAlertView *av = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-    [av show];
 }
 
 

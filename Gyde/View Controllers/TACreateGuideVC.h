@@ -42,6 +42,9 @@
 @property (nonatomic, retain) IBOutlet UITextField *titleField;
 @property (nonatomic, retain) IBOutlet UITextField *descriptionField;
 
+@property (nonatomic, assign) BOOL addToFacebook;
+@property (nonatomic, assign) BOOL shareOnTwitter;
+
 - (IBAction)submitButtonTapped:(id)sender;
 - (IBAction)recommendButtonTapped:(id)sender;
 

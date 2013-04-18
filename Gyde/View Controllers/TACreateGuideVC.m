@@ -13,6 +13,9 @@
 #import "SVProgressHUD.h"
 #import "AppDelegate.h"
 #import "TAUsersVC.h"
+#import <Twitter/Twitter.h>
+
+#define SHARE_VIEW_TAG 9999
 
 @interface TACreateGuideVC ()
 
@@ -21,7 +24,7 @@
 @implementation TACreateGuideVC
 
 @synthesize imageCode, titleField, guideTagID, guideCity, recommendToUsernames;
-@synthesize tagLabel, cityLabel;
+@synthesize tagLabel, cityLabel, descriptionField;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -46,6 +49,13 @@
 	
 	// Set the city label
 	self.cityLabel.text = self.guideCity;
+    
+    if (self.delegate) {
+    
+        UIView *shareView = [self.view viewWithTag:SHARE_VIEW_TAG];
+        shareView.hidden = YES;
+    }
+        
 	
 	// Set the tag label
 	Tag *tag = [Tag tagWithID:[self.guideTagID intValue] inManagedObjectContext:[self appDelegate].managedObjectContext];
@@ -107,6 +117,11 @@
 }
 
 
+- (IBAction)addToTwitterButtonTapped:(id)sender {
+    
+    self.shareOnTwitter = !self.shareOnTwitter;
+}
+
 // The submit button was tapped by the user
 // This will trigger the "addguide" API call
 - (IBAction)submitButtonTapped:(id)sender {
@@ -126,8 +141,6 @@
     }
     
     else {
-        
-        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
 
         // init the "addguide" API call
         [self initAddGuideAPI];
@@ -154,10 +167,8 @@
     [[GlooRequestManager sharedManager] post:@"addguide" params:params
                                dataLoadBlock:^(NSDictionary *json) {}
                              completionBlock:^(NSDictionary *json) {
-                             
-                                 [MBProgressHUD showHUDAddedTo:self.view animated:YES];
                                  
-                                 if ([[json objectForKey:@"result"] isEqualToString:@"ok"]) {
+                                 if ([json[@"result"] isEqualToString:@"ok"]) {
                                  
                                      NSDictionary *guideData = [json objectForKey:@"guide"];
                                      NSString *message = @"Your guide was successfully saved.";
@@ -168,6 +179,39 @@
                                                                         cancelButtonTitle:@"OK"
                                                                         otherButtonTitles:nil, nil];
                                      [av show];
+                                     
+                                     
+                                     if (self.shareOnTwitter) {
+                                         
+#warning TO DO: attach place name to "initial text"
+                                         NSString *initialText = @"";
+                                         [self sharePhotoOnTwitterWithText:initialText];
+                                     }
+                                     
+                                     if (self.addToFacebook) {
+                                         
+                                         // Post a status update to the user's feed via the Graph API, and display an alert view
+                                         // with the results or an error.
+                                         NSString *message = @"Gyde for iOS.";
+                                         
+                                         NSDictionary *mediaDict = json[@"media"];
+                                         NSDictionary *pathsDict = mediaDict[@"paths"];
+                                         NSDictionary *urlDict = mediaDict[@"url"];
+                                         
+                                         NSString *description = mediaDict[@"caption"];
+                                         
+                                         NSMutableDictionary *postParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+                                                                            [urlDict objectForKey:@"long"], @"link",
+                                                                            [NSString stringWithFormat:@"http://want.supergloo.net.au%@", [pathsDict objectForKey:@"squarethumb"]], @"picture",
+                                                                            @"Just took this photo on Gyde.", @"name",
+                                                                            message, @"caption",
+                                                                            description, @"description",
+                                                                            nil];
+                                         
+                                         [self publishPhotoToFacebookFeed:postParams];
+                                     }
+                                     
+                                     
                                      
                                      if ([self.recommendToUsernames count] > 0) {
                                                                                   
@@ -198,7 +242,7 @@
                                      [av show];
                                  }
                                  
-                             } viewForHUD:nil];
+                             } viewForHUD:self.view];
 }
 
 
@@ -247,5 +291,136 @@
 	return randomNum;
 	
 }
+
+
+- (void)sharePhotoOnTwitterWithText:(NSString *)initialText {
+    
+    //Check for Social Framework availability (iOS 6)
+    if(NSClassFromString(@"SLComposeViewController") != nil){
+        
+        if([SLComposeViewController instanceMethodForSelector:@selector(isAvailableForServiceType)] != nil)
+        {
+            if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
+            {
+                NSLog(@"service available");
+                SLComposeViewController *composeViewController = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
+                [composeViewController setInitialText:initialText];
+                //[composeViewController addImage:self.photoView.image];
+                [self presentViewController:composeViewController animated:YES completion:nil];
+            }
+            else
+            {
+                NSLog(@"service not available!");
+            }
+        }
+    }
+    
+    else{
+        
+        // For TWTweetComposeViewController (iOS 5)
+        if ([TWTweetComposeViewController canSendTweet]) {
+            TWTweetComposeViewController *tweetVC = [[TWTweetComposeViewController alloc] init];
+            //[tweetVC addImage:self.photoView.image];
+            [tweetVC setInitialText:initialText];
+            [self presentModalViewController:tweetVC animated:YES];
+        }
+        
+        else {
+            
+            NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                        delegate:self
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
+        }
+    }
+}
+
+//
+// Currently this method is triggered during the
+// the receivedSubmitResponse method - if the photo
+// submission to the API was successful.
+// It accepts a dictionary of parameters needed to publish
+// to the FB user's wall feed. An alert view is displayed upon
+// completion of the request.
+- (void)publishPhotoToFacebookFeed:(NSMutableDictionary *)postParams {
+    
+    [FBRequestConnection
+     startWithGraphPath:@"me/feed"
+     parameters:postParams
+     HTTPMethod:@"POST"
+     completionHandler:^(FBRequestConnection *connection,
+                         id result,
+                         NSError *error) {
+         NSString *alertText;
+         if (error) {
+             alertText = [NSString stringWithFormat:
+                          @"error: domain = %@, code = %d",
+                          error.domain, error.code];
+         } else {
+             alertText = [NSString stringWithFormat:
+                          @"Posted action, id: %@",
+                          [result objectForKey:@"id"]];
+         }
+         // Show the result in an alert
+         //         [[[UIAlertView alloc] initWithTitle:@"Result"
+         //                                     message:alertText
+         //                                    delegate:self
+         //                           cancelButtonTitle:@"OK!"
+         //                           otherButtonTitles:nil]
+         //          show];
+     }];
+}
+
+
+//
+// Currently this method is fired once the user
+// taps the 'Tweet' button. It's objective is to
+// determine whether the current FBSession is 'open'
+// If the session is not open it calls 'openSessionWithAllowLoginUI'
+// which allows the user to log into FB and/or grant permissions to
+// this app.
+- (IBAction)checkFacebookSession:(id)sender {
+    
+    self.addToFacebook = !self.addToFacebook;
+    
+    if (!self.addToFacebook)
+        return;
+    
+    if (!FBSession.activeSession.isOpen) {
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(facebookSessionAvailable) name:@"facebook_session_available" object:nil];
+        [[FacebookHelper sharedHelper] openSessionWithAllowLoginUI:YES];
+    }
+    else [self checkFacebookPublishPermissions];
+}
+
+- (void)facebookSessionAvailable {
+    
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"facebook_session_available" object:nil];
+	if (FBSession.activeSession.isOpen) {
+        
+        [self checkFacebookPublishPermissions];
+    }
+}
+
+- (void)checkFacebookPublishPermissions {
+    
+    // Ask for publish_actions permissions in context
+    if ([FBSession.activeSession.permissions
+         indexOfObject:@"publish_actions"] == NSNotFound) {
+        
+        // No permissions found in session, ask for it
+        [FBSession.activeSession
+         requestNewPublishPermissions:
+         [NSArray arrayWithObject:@"publish_actions"]
+         defaultAudience:FBSessionDefaultAudienceFriends
+         completionHandler:^(FBSession *session, NSError *error) {
+             if (!error) { }
+         }];
+    }
+}
+
 
 @end
