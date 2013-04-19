@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "GridImage.h"
 #import "TAUsersVC.h"
+#import <MessageUI/MessageUI.h>
 #import <MapKit/MapKit.h>
 #import <FacebookSDK/FacebookSDK.h>
 
@@ -20,19 +21,16 @@ typedef enum  {
 	GuideModeViewing = 1
 } GuideMode;
 
-@interface TAGuideDetailsVC : UIViewController <GridImageDelegate, UIActionSheetDelegate, RecommendsDelegate> {
+@interface TAGuideDetailsVC : UIViewController <GridImageDelegate, UIActionSheetDelegate, RecommendsDelegate, MFMailComposeViewControllerDelegate> {
 
 	GuideMode guideMode;
-	IBOutlet MKMapView *guideMap;
+	MKMapView *guideMap;
 	
 	IBOutlet UITableView *photosTable;
 	
 	TAPhotoTableCell *loadCell;
 	
-	HTTPFetcher *guideFetcher;
-	HTTPFetcher *isLovedFetcher;
 	HTTPFetcher *loveFetcher;
-	HTTPFetcher *recommendFetcher;
 	
 	NSDictionary *guideData;
 	NSMutableArray *photos;
@@ -42,19 +40,20 @@ typedef enum  {
 	BOOL loading;
 	BOOL guideLoaded;
 	
-	IBOutlet UIButton *authorBtn;
+	UIButton *authorBtn;
 	IBOutlet UIScrollView *gridScrollView;
-	IBOutlet UILabel *titleLabel;
+	UILabel *titleLabel;
 	IBOutlet UIView *imagesView;
 }
 
 @property GuideMode guideMode;
-@property (nonatomic, retain) IBOutlet MKMapView *guideMap;
+@property (nonatomic, retain) MKMapView *guideMap;
 
-@property (retain, nonatomic) IBOutlet UIButton *loveBtn;
-@property (retain, nonatomic) IBOutlet UIButton *photosCountBtn;
-@property (retain, nonatomic) IBOutlet UIButton *timeElapsedBtn;
-
+@property (retain, nonatomic) UIButton *loveBtn;
+@property (retain, nonatomic) UIButton *photosCountBtn;
+@property (retain, nonatomic) UIButton *timeElapsedBtn;
+@property (retain, nonatomic) UITextView *descriptionView;
+@property (retain, nonatomic) UILabel *headerLabel;
 
 @property (nonatomic, retain) IBOutlet UITableView *photosTable;
 
@@ -73,10 +72,10 @@ typedef enum  {
 
 @property (nonatomic, retain) NSMutableDictionary *postParams;
 
-- (IBAction)goBack:(id)sender;
 - (IBAction)authorButtonTapped:(id)sender;
 - (IBAction)initFollowersList:(id)sender;
 - (void)configureCell:(TAPhotoTableCell *)cell atIndexPath:(NSIndexPath *)indexPath;
-- (IBAction)publishPhotoToFacebookFeed:(id)sender;
+- (IBAction)publishGuideToFacebookFeed:(id)sender;
+- (IBAction)displayEmail:(id)sender;
 
 @end

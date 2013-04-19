@@ -15,10 +15,6 @@
 #import "TASettingsVC.h"
 #import "TAExploreVC.h"
 #import "TACameraVC.h"
-#import "Guide.h"
-#import "Tag.h"
-#import "Photo.h"
-#import "User.h"
 
 NSString *const FBSessionStateChangedNotification =
 @"au.net.c2.Tourism-App:FBSessionStateChangedNotification";
@@ -53,6 +49,8 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
     
     // STATUS BAR COLOUR/STYLE
 	[application setStatusBarStyle:UIStatusBarStyleBlackOpaque];
+    
+    [self addNavbarAppearanceProxies];
     
     // FLURRY
     //[Flurry startSession:@"D4T46KDBMSNRFK3S9KHF"];
@@ -446,17 +444,30 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 #pragma LOGIN METHODS
 
 - (void)addNavbarAppearanceProxies {
-    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navbar.png"] forBarMetrics:UIBarMetricsDefault];
     
-    [[UIBarButtonItem appearance] setBackgroundImage:[[UIImage imageNamed:@"navbarButton.png"]
+    UIColor *navColor = [UIColor colorWithRed:158.0/255.0 green:11.0/255.0 blue:15.0/255.0 alpha:1.0];
+    
+    NSDictionary *navBarTextAttributes = @{
+        UITextAttributeFont : [UIFont fontWithName:@"FreightSansBold" size:20],
+        UITextAttributeTextShadowColor : navColor,
+        UITextAttributeTextShadowOffset : [NSValue valueWithUIOffset:UIOffsetMake(0,1)]
+	};
+    
+    
+	[[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"nav-bar-blank.png"] forBarMetrics:UIBarMetricsDefault];
+	[[UINavigationBar appearance] setTitleVerticalPositionAdjustment:3 forBarMetrics:UIBarMetricsDefault];
+	[[UINavigationBar appearance] setTintColor:navColor];
+	[[UINavigationBar appearance] setTitleTextAttributes:navBarTextAttributes];
+        
+    [[UIBarButtonItem appearance] setBackgroundImage:[[UIImage imageNamed:@"nav-bar-back-button.png"]
                                                       resizableImageWithCapInsets:UIEdgeInsetsMake(14, 4, 14, 4)]
                                             forState:UIControlStateNormal
                                           barMetrics:UIBarMetricsDefault];
     
-    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:[[UIImage imageNamed:@"navbarBack.png"]
-                                                                resizableImageWithCapInsets:UIEdgeInsetsMake(14, 14, 14, 4)]
-                                                      forState:UIControlStateNormal
-                                                    barMetrics:UIBarMetricsDefault];
+//    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:[[UIImage imageNamed:@"navbarBack.png"]
+//                                                                resizableImageWithCapInsets:UIEdgeInsetsMake(14, 14, 14, 4)]
+//                                                      forState:UIControlStateNormal
+//                                                    barMetrics:UIBarMetricsDefault];
 }
 
 - (void)removeNavbarAppearanceProxies {

@@ -115,9 +115,8 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 
 - (void)initNavBar {
 	
-	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
-	
+	self.title = @"LOGIN";
+	self.navigationController.navigationBarHidden = NO;
 }
 
 

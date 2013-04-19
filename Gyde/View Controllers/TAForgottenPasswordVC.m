@@ -76,8 +76,8 @@
 
 - (void)initNavBar {
 	
-	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
+	self.title = @"FORGOTTEN PASSWORD";
+	self.navigationController.navigationBarHidden = NO;
 	
 }
 

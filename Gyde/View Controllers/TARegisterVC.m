@@ -349,9 +349,16 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 
 - (void)initNavBar {
 
-	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
-	
+	self.title = @"REGISTER";
+	self.navigationController.navigationBarHidden = NO;
+    
+    UIButton *saveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [saveBtn setImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
+    [saveBtn setFrame:CGRectMake(0, 0, 54, 27)];
+    [saveBtn addTarget:self action:@selector(registerButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveBtn];
+    
+	self.navigationItem.rightBarButtonItem = saveButtonItem;
 }
 
 

@@ -21,6 +21,7 @@
 #import "DictionaryHelper.h"
 #import "UIImageView+AFNetworking.h"
 #import <Accounts/Accounts.h>
+#import <QuartzCore/QuartzCore.h>
 
 #define IMAGE_VIEW_TAG 7000
 #define GRID_IMAGE_WIDTH 75.0
@@ -51,6 +52,12 @@
 - (void)viewDidLoad {
 	
     [super viewDidLoad];
+    
+    self.title = @"GUIDE";
+    self.navigationController.navigationBarHidden = NO;
+    
+    self.photosTable.backgroundColor = [UIColor clearColor];
+    self.photosTable.backgroundView = nil;
 	
 	self.photos = [NSMutableArray array];
 	self.guideData = [NSDictionary dictionary];
@@ -58,6 +65,8 @@
 	// Added interactive states for buttons ///////////////////////////////////////////////////
     [self.loveBtn setImage:[UIImage imageNamed:@"guide-love-button-on.png"] forState:(UIControlStateHighlighted|UIControlStateSelected|UIControlStateDisabled)];
     
+    // Table header view
+    [self setupTableHeader];
     
     // Add single tap gesture recognizer to map view
     // The action will be goToMapDetails:
@@ -88,9 +97,7 @@
     self.titleLabel = nil;
 	
 	self.gridScrollView = nil;
-	
-	self.authorBtn = nil;
-	
+		
     self.guideMap = nil;
 	
 	self.photosTable = nil;
@@ -109,15 +116,11 @@
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
-
 - (void)viewWillAppear:(BOOL)animated {
 	
     [super viewDidAppear:animated];
 	
 	if (!guideLoaded && !loading) {
-			
-		// Show loading animation
-		[self showLoading];
 		
 		// Fetch the guide data
 		[self getGuide];
@@ -136,6 +139,33 @@
     return 1;
 }
 
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    
+    CGRect headerFrame = CGRectMake(0, 0, 320, 25);
+    UIView *headerView = [[UIView alloc] initWithFrame:headerFrame];
+    headerView.backgroundColor = [UIColor clearColor];
+    
+    UIView *bgView = [[UIView alloc] initWithFrame:CGRectMake(10, 0, 300, 25.0)];
+    bgView.backgroundColor = [UIColor colorWithRed:51.0/255.0 green:51.0/255.0 blue:51.0/255.0 alpha:1.0];
+    bgView.layer.cornerRadius = 0.0;
+    bgView.alpha = 0.25;
+    [headerView addSubview:bgView];
+    
+    self.headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(18.0, 0.0, 298, 25.0)];
+    self.headerLabel.textColor = [UIColor whiteColor];
+    self.headerLabel.backgroundColor = [UIColor clearColor];
+    self.headerLabel.font = [UIFont fontWithName:@"FreightSansBold" size:11];
+    self.headerLabel.text = [NSString stringWithFormat:@"PLACES (%i)", self.photos.count];
+    [headerView addSubview:self.headerLabel];
+
+    
+    return headerView;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+
+    return 25.0;
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
 	
@@ -156,6 +186,8 @@
 	if ([title length] == 0) title = @"[untitled]";
 	
 	[cell.titleLabel setText:title];
+    
+    [cell.subtitleLabel setText:photo.timeElapsed];
 	
 	[cell initImage:photo.thumbURL];
 }
@@ -229,9 +261,7 @@
 #pragma RecommendsDelegate methods
 
 - (void)recommendToUsernames:(NSMutableArray *)usernames {
-	
-	[self showLoading];
-	
+		
 	// Retain the usernames that were selected 
 	// for this Guide to be recommend to
 	[self initRecommendAPI:usernames];
@@ -254,9 +284,78 @@
 
 #pragma MY-METHODS
 
-- (IBAction)goBack:(id)sender {
-	
-	[self.navigationController popViewControllerAnimated:YES];
+- (void)setupTableHeader {
+
+    CGFloat headerHeight = 202;
+    CGFloat mapHeight = 100;
+    CGRect mapFrame = CGRectMake(0, 0, 320, mapHeight);
+    CGRect headerFrame = CGRectMake(0, 0, 320, headerHeight);
+    
+    CGFloat titleXPos = 11.0;
+    CGFloat titleYPos = 104.0;
+    CGFloat subHeadingYPos = 124.0;
+    
+    UIView *headerView = [[UIView alloc] initWithFrame:headerFrame];
+    
+    self.guideMap = [[MKMapView alloc] initWithFrame:mapFrame];
+    
+    [headerView addSubview:self.guideMap];
+    
+    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(titleXPos, titleYPos, 298, 30)];
+    self.titleLabel.textColor = [UIColor colorWithRed:51.0/255.0 green:51.0/255.0 blue:51.0/255.0 alpha:1.0];
+    self.titleLabel.backgroundColor = [UIColor clearColor];
+    self.titleLabel.font = [UIFont fontWithName:@"FreightSansMedium" size:23];
+    [headerView addSubview:self.titleLabel];
+    
+    self.loveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.loveBtn.backgroundColor = [UIColor clearColor];
+    self.loveBtn.frame = CGRectMake(282, titleYPos+10, 30, 30);
+    [self.loveBtn addTarget:self action:@selector(loveButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [self.loveBtn setImage:[UIImage imageNamed:@"guide-love-button.png"] forState:UIControlStateNormal];
+    [self.loveBtn setImage:[UIImage imageNamed:@"guide-love-button-on.png"] forState:UIControlStateHighlighted];
+    [headerView addSubview:self.loveBtn];
+    
+    self.authorBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.authorBtn.backgroundColor = [UIColor clearColor];
+    [self.authorBtn setTitleColor:[UIColor colorWithRed:142.0/255.0 green:140.0/255.0 blue:136.0/255.0 alpha:1.0] forState:UIControlStateNormal];
+    self.authorBtn.titleLabel.font = [UIFont fontWithName:@"FreightSansBold" size:13];
+    self.authorBtn.frame = CGRectMake(titleXPos, subHeadingYPos, 60, 30);
+    [self.authorBtn addTarget:self action:@selector(authorButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [headerView addSubview:self.authorBtn];
+    
+    self.photosCountBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.photosCountBtn.backgroundColor = [UIColor clearColor];
+    [self.photosCountBtn setTitleColor:[UIColor colorWithRed:142.0/255.0 green:140.0/255.0 blue:136.0/255.0 alpha:1.0] forState:UIControlStateNormal];
+    self.photosCountBtn.titleLabel.font = [UIFont fontWithName:@"FreightSansBold" size:13];
+    self.photosCountBtn.frame = CGRectMake(titleXPos + 70, subHeadingYPos, 100, 30);
+    [headerView addSubview:self.photosCountBtn];
+    
+    self.timeElapsedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.timeElapsedBtn.backgroundColor = [UIColor clearColor];
+    [self.timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
+    [self.timeElapsedBtn setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
+    [self.timeElapsedBtn setTitleColor:[UIColor colorWithRed:142.0/255.0 green:140.0/255.0 blue:136.0/255.0 alpha:1.0] forState:UIControlStateNormal];
+    self.timeElapsedBtn.titleLabel.font = [UIFont fontWithName:@"FreightSansBold" size:13];
+    self.timeElapsedBtn.frame = CGRectMake((titleXPos + (70 * 2)), subHeadingYPos, 100, 30);
+    
+    [self.timeElapsedBtn setImage:[UIImage imageNamed:@"photo-time-icon.png"] forState:UIControlStateNormal];
+   
+    [headerView addSubview:self.timeElapsedBtn];
+    
+    CGRect descFrame = CGRectMake(titleXPos, subHeadingYPos + 26, 298, 46);
+    self.descriptionView = [[UITextView alloc] initWithFrame:descFrame];
+    self.descriptionView.editable = NO;
+    self.descriptionView.showsHorizontalScrollIndicator = NO;
+    self.descriptionView.showsVerticalScrollIndicator = NO;
+    self.descriptionView.contentInset = UIEdgeInsetsMake(-8, -8, 0, 0);
+    self.descriptionView.textColor = [UIColor colorWithRed:142.0/255.0 green:140.0/255.0 blue:136.0/255.0 alpha:1.0];
+    self.descriptionView.font = [UIFont systemFontOfSize:10];
+    self.descriptionView.backgroundColor = [UIColor clearColor];
+    self.descriptionView.scrollEnabled = NO;
+    [headerView addSubview:self.descriptionView];
+    
+    
+    self.photosTable.tableHeaderView = headerView;
 }
 
 
@@ -363,73 +462,32 @@
 
 
 - (void)getGuide {
-	
-	NSString *jsonString = [NSString stringWithFormat:@"username=%@&guideID=%@&token=%@", 
-							[self appDelegate].loggedInUsername, [self guideID], [[self appDelegate] sessionToken]];
-	
-	// Convert string to data for transmission
-	NSData *jsonData = [NSData dataWithBytes:[jsonString UTF8String] length:[jsonString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"Guide";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Create URL request with URL and the JSON data
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:jsonData];
-	
-	// HTTPFetcher
-	guideFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-												  receiver:self
-													action:@selector(receivedGetGuideResponse:)];
-	[guideFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedGetGuideResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-    
-    NSAssert(aFetcher == guideFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	NSLog(@"PRINTING GET GUIDE:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-    
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-    if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
 		
-		guideLoaded = YES;
-        
-        // Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		if ([[results objectForKey:@"result"] isEqualToString:@"ok"]) {
-			
-			self.guideData = [results objectForKey:@"guide"];
-			
-			// Build an array from the dictionary for easy access to each entry
-			[self updatePhotosArray:[self.guideData objectForKey:@"images"]];
-		}
-		
-//		[jsonString release];
-    }
-	
-	// Update UI elements
-	[self updateUIElements];
-	
-	// Create the grid of images using the results
-	[self.photosTable reloadData];
-	
-	[self initMapLocations];
-	
-	// hide loading
-	[self hideLoading];
+    NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"guideID" : [self guideID], @"token" : [[self appDelegate] sessionToken] };
     
-//    [guideFetcher release];
-    guideFetcher = nil;
+    [[GlooRequestManager sharedManager] post:@"Guide" params:params
+                               dataLoadBlock:^(NSDictionary *json){}
+                             completionBlock:^(NSDictionary *json){
+                             
+                                 if ([json[@"result"] isEqualToString:@"ok"]) {
+                                 
+                                     self.guideData = json[@"guide"];
+                                     
+                                     // Build an array from the dictionary for easy access to each entry
+                                     [self updatePhotosArray:self.guideData[@"images"]];
+                                     
+                                     // Update UI elements
+                                     [self updateUIElements];
+                                     
+                                     // Create the grid of images using the results
+                                     [self.photosTable reloadData];
+                                     
+                                     [self initMapLocations];
+                                 }
+                                 
+                                 else {}
+                             }
+                                  viewForHUD:self.view];
 }
 
 
@@ -456,7 +514,7 @@
     CGFloat fontSize = 13.0;
     CGFloat leftPadding = 8.0;
     CGFloat btnXPos = self.authorBtn.frame.origin.x;
-    UIFont *btnFont = [UIFont systemFontOfSize:fontSize];
+    UIFont *btnFont = [UIFont fontWithName:@"FreightSansBold" size:fontSize];
     CGSize expectedAuthorSize = [authorText sizeWithFont:btnFont];
     
     CGRect newAuthorFrame = self.authorBtn.frame;
@@ -469,7 +527,10 @@
     
     
     // Photos button
-    NSString *photosCountString = [self.guideData objectForKey:@"imagecount"];
+    NSString *photosCountString;
+    NSInteger photosCount = [[self.guideData objectForKey:@"imagecount"] intValue];
+    if (photosCount == 1) photosCountString = [NSString stringWithFormat:@"%@ photo", [self.guideData objectForKey:@"imagecount"]];
+    else photosCountString = [NSString stringWithFormat:@"%@ photos", [self.guideData objectForKey:@"imagecount"]];
     CGSize expectedPhotosCountSize = [photosCountString sizeWithFont:btnFont];
 
     
@@ -494,32 +555,20 @@
     CGSize elapsedTimeSize = [elapsedTimeString sizeWithFont:btnFont];
     
     btnXPos += photosWidth + leftPadding;
-    CGRect newTimeFrame = self.timeElapsedBtn.frame;
-    newTimeFrame.size.width = 13 + elapsedTimeSize.width;
-    newTimeFrame.origin.x = btnXPos;
-    [self.timeElapsedBtn setFrame:newTimeFrame];
+//    CGRect newTimeFrame = self.timeElapsedBtn.frame;
+//    newTimeFrame.size.width = 13 + elapsedTimeSize.width;
+//    newTimeFrame.origin.x = btnXPos;
+//    [self.timeElapsedBtn setFrame:newTimeFrame];
+//    
+//    [self.timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
+//    [self.timeElapsedBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
+//    [self.timeElapsedBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+//    
+//    [self.timeElapsedBtn setBackgroundColor:[UIColor clearColor]];
+//    [self.timeElapsedBtn setTitle:elapsedTimeString forState:UIControlStateNormal];
     
-    [self.timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-    [self.timeElapsedBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-    [self.timeElapsedBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-    
-    [self.timeElapsedBtn setBackgroundColor:[UIColor clearColor]];
-    [self.timeElapsedBtn setTitle:elapsedTimeString forState:UIControlStateNormal];
-    
-    
+    self.descriptionView.text = @"There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour";
 	
-}
-
-
-- (void)showLoading {
-	
-	[SVProgressHUD showInView:self.view status:nil networkIndicator:YES posY:-1 maskType:SVProgressHUDMaskTypeClear];
-}
-
-
-- (void)hideLoading {
-	
-	[SVProgressHUD dismissWithSuccess:@"Loaded!"];
 }
 
 - (IBAction)tweetButtonTapped:(id)sender {
@@ -569,7 +618,7 @@
     }
 }
 
-- (IBAction)authorButtonTapped:(id)sender {
+- (void)authorButtonTapped:(id)sender {
 		
 	TAProfileVC *profileVC = [[TAProfileVC alloc] initWithNibName:@"TAProfileVC" bundle:nil];
 	
@@ -579,8 +628,7 @@
 	[self.navigationController pushViewController:profileVC animated:YES];
 }
 
-
-- (IBAction)loveButtonTapped:(id)sender {
+- (void)loveButtonTapped:(id)sender {
 
     if (isLoved) [self initUnloveAPI];
     
@@ -589,52 +637,20 @@
 
 
 - (void)initIsLovedAPI {
-	
-	NSString *jsonString = [NSString stringWithFormat:@"username=%@&code=%@&type=guide", [self appDelegate].loggedInUsername, self.guideID];	
-	
-	NSData *postData = [NSData dataWithBytes:[jsonString UTF8String] length:[jsonString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"isLoved";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	isLovedFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-													receiver:self action:@selector(receivedIsLovedResponse:)];
-	[isLovedFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedIsLovedResponse:(HTTPFetcher *)aFetcher {
     
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
+    NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"code" : self.guideID, @"type" : @"guide" };
     
-	NSAssert(aFetcher == isLovedFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		if ([[results objectForKey:@"loved"] isEqualToString:@"true"]) isLoved = YES;
-		
-//		[jsonString release];
-	}
-	
-	// Loved status
-	[self updateLovedStatus];
-	
-//	[isLovedFetcher release];
-	isLovedFetcher = nil;
-    
+    [[GlooRequestManager sharedManager] post:@"isLoved" params:params
+                               dataLoadBlock:^(NSDictionary *json){}
+                             completionBlock:^(NSDictionary *json){
+                             
+                                 if ([json[@"loved"] isEqualToString:@"true"]) isLoved = YES;
+                                 else isLoved = NO;
+                                 
+                                 // Loved status
+                                 [self updateLovedStatus];
+                             }
+                                  viewForHUD:nil];
 }
 
 
@@ -645,14 +661,12 @@
 	
     if (isLoved) {
     
-        [self.loveBtn setSelected:YES];
-        [self.loveBtn setHighlighted:NO];
+        [self.loveBtn setImage:[UIImage imageNamed:@"guide-love-button-on.png"] forState:UIControlStateNormal];
     }
 	
 	else {
         
-        [self.loveBtn setSelected:NO];
-		[self.loveBtn setHighlighted:NO];
+        [self.loveBtn setImage:[UIImage imageNamed:@"guide-love-button.png"] forState:UIControlStateNormal];
     }
 }
 
@@ -786,56 +800,18 @@
 - (void)initRecommendAPI:(NSMutableArray *)usernames {
 	
 	NSString *usernamesStr = [NSString stringWithFormat:@"%@", [usernames componentsJoinedByString:@","]];
+    NSDictionary *params = @{ @"type" : @"guide", @"token" : [[self appDelegate] sessionToken], @"username" : [self appDelegate].loggedInUsername, @"code" : self.guideID, @"usernames" : usernamesStr };
 	
-	NSString *postString = [NSString stringWithFormat:@"type=guide&token=%@&username=%@&code=%@&usernames=%@", [[self appDelegate] sessionToken], [self appDelegate].loggedInUsername, self.guideID, usernamesStr];
-	
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"Recommend";	
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	recommendFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-													  receiver:self
-														action:@selector(receivedRecommendResponse:)];
-	[recommendFetcher start];
-	
-}
-
-
-// Example fetcher response handling
-- (void)receivedRecommendResponse:(HTTPFetcher *)aFetcher {
-    
-	HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	NSAssert(aFetcher == recommendFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		//NSDictionary *results = [jsonString JSONValue];
-		
-		//if ([[results objectForKey:@"result"] isEqualToString:@"ok"]) success = YES;
-		
-		NSLog(@"jsonString RECOMMEND:%@", jsonString);
-		
-//		[jsonString release];
-	}
-	
-	[self hideLoading];
-	
-//	[recommendFetcher release];
-	recommendFetcher = nil;
-    
+    [[GlooRequestManager sharedManager] post:@"Recommend" params:params
+                               dataLoadBlock:^(NSDictionary *json){}
+                             completionBlock:^(NSDictionary *json){
+                                 
+                                 if ([json[@"result"] isEqualToString:@"ok"]) {
+                                     
+                                     NSLog(@"RECOMMENDED SUCCESSFULLY!");
+                                 }
+                             }
+                                  viewForHUD:self.view];
 }
 
 
@@ -1094,5 +1070,57 @@
     [alertView show];
 }
 
+
+#pragma mark MFMailComposeViewControllerDelegate
+
+// Dismisses the email composition interface when users tap Cancel or Send. Proceeds to update the message field with the result of the operation.
+- (void)mailComposeController:(MFMailComposeViewController*)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError*)error
+{
+    
+    // Notifies users about errors associated with the interface
+    switch (result) {
+            
+        case MFMailComposeResultCancelled:
+            NSLog(@"Result: canceled");
+            break;
+        case MFMailComposeResultSaved:
+            NSLog(@"Result: saved");
+            break;
+        case MFMailComposeResultSent:
+            NSLog(@"Result: sent");
+            break;
+        case MFMailComposeResultFailed:
+            NSLog(@"Result: failed");
+            break;
+        default:
+            NSLog(@"Result: not sent");
+            break;
+    }
+    
+    [self dismissModalViewControllerAnimated:YES];
+}
+
+
+- (IBAction)displayEmail:(id)sender {
+
+    // Email message here
+    MFMailComposeViewController *picker = [[MFMailComposeViewController alloc] init];
+    picker.mailComposeDelegate = self;
+    
+    // SUBJECT
+    [picker setSubject:@"RE: Tourism App"];
+    
+    // TO ADDRESS...
+    NSArray *recipients = [[NSArray alloc] initWithObjects:@"hello@c2.net.au", nil];
+    [picker setToRecipients:recipients];
+    
+    // BODY TEXT
+    NSString *bodyContent = @"I was using the Tourism App...";
+    NSString *emailBody = [NSString stringWithFormat:@"%@\n\n", bodyContent];
+    [picker setMessageBody:emailBody isHTML:NO];
+    
+    // SHOW INTERFACE
+    [self presentModalViewController:picker animated:YES];
+}
 
 @end

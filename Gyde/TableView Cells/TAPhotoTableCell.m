@@ -12,7 +12,7 @@
 
 @implementation TAPhotoTableCell
 
-@synthesize titleLabel, thumbView, cellSpinner, imageURL;
+@synthesize titleLabel, subtitleLabel, thumbView, cellSpinner, imageURL;
 
 + (NSString *)reuseIdentifier {
 	
@@ -49,9 +49,7 @@
 	if (urlString) {
 		
 		self.imageURL = [urlString convertToURL];
-		
-		NSLog(@"LOADING GRID IMAGE:%@", urlString);
-		
+				
 		UIImage* img = [ImageManager loadImage:imageURL];
 		if (img) {
 			
@@ -74,7 +72,6 @@
 		
 		if (image != nil) {
 			
-			NSLog(@"IMAGE LOADED:%@", [url description]);
 			[self.thumbView setImage:image];
 			[self.cellSpinner stopAnimating];
 		}

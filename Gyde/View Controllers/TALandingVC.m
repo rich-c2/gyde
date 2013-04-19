@@ -74,7 +74,7 @@
 
 - (void)initNavBar {
 
-	self.navigationController.navigationBarHidden = YES;
+	[self.navigationController setNavigationBarHidden:YES animated:YES];
 }
 
 - (IBAction)loginButtonTapped:(id)sender {

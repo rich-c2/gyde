@@ -87,6 +87,20 @@
 - (void)viewDidLoad {
 	
     [super viewDidLoad];
+    
+    self.navigationController.navigationBarHidden = NO;
+    
+    
+    self.followUserBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
+    [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
+    [self.followUserBtn setTitle:@"FOLLOW" forState:UIControlStateNormal];
+    [self.followUserBtn setFrame:CGRectMake(0, 0, 69, 27)];
+    [self.followUserBtn.titleLabel setFont:[UIFont systemFontOfSize:10]];
+    [self.followUserBtn addTarget:self action:@selector(followUserButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:self.followUserBtn];
+    
+	self.navigationItem.rightBarButtonItem = saveButtonItem;
 	
 	self.photos = [NSMutableArray array];
 	
@@ -505,11 +519,8 @@
 	// Follow API was successful
 	if (success) {
 		
-		// Hide 'Follow' user button
-		[self.followUserBtn setHidden:YES];
-	
-		// Display 'Following' user button
-		[self.followingUserBtn setHidden:NO];
+		[self.followUserBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
+		[self.followUserBtn setImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
 	}
 	
 	followFetcher = nil;
@@ -566,10 +577,8 @@
 	if (success) {
 		
 		// Show 'Follow' user button
-		[self.followUserBtn setHidden:NO];
-		
-		// Hide 'Following' user button
-		[self.followingUserBtn setHidden:YES];
+        [self.followUserBtn setTitle:@"FOLLOW" forState:UIControlStateNormal];
+		[self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
 	}
 		
 	unfollowFetcher = nil;
@@ -684,7 +693,8 @@
 - (void)initNavBar {
 	
 	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
+    self.title = @"PROFILE";
+	self.navigationController.navigationBarHidden = NO;
 }
 
 
@@ -727,10 +737,15 @@
 	// Enable the correct button
 	// If this use is being followed by the logged-in user
 	// then show the followingUser button. And vice-versa.
-	if ([isFollowing isEqualToString:@"true"])
-		[self.followingUserBtn setHidden:NO];
-	
-	else [self.followUserBtn setHidden:NO];
+	if ([isFollowing isEqualToString:@"true"]) {
+		[self.followUserBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
+        [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
+	}
+	else {
+    
+        [self.followUserBtn setTitle:@"FOLLOW" forState:UIControlStateNormal];
+		[self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
+    }
 }
 
 

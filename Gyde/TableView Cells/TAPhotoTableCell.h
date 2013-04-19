@@ -14,12 +14,14 @@
 	
 	NSURL *imageURL;
 	UILabel *titleLabel;
+    UILabel *subtitleLabel;
 	UIImageView *thumbView;
 	UIActivityIndicatorView *cellSpinner;
 }
 
 @property (nonatomic, retain) NSURL *imageURL;
 @property (nonatomic, retain) IBOutlet UILabel *titleLabel;
+@property (nonatomic, retain) IBOutlet UILabel *subtitleLabel;
 @property (nonatomic, retain) IBOutlet UIImageView *thumbView;
 @property (nonatomic, retain) IBOutlet UIActivityIndicatorView *cellSpinner;
 

@@ -693,7 +693,8 @@
 - (void)initNavBar {
 	
 	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
+    self.title = @"ME";
+	self.navigationController.navigationBarHidden = NO;
 }
 
 
