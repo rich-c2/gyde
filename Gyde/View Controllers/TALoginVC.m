@@ -186,8 +186,13 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 				
 				[defaults setObject:city forKey:kUserDefaultCityKey];
                 
+                AppDelegate *appDelegate = [self appDelegate];
+                
                 // Save User to Core Data
-                [User userWithLoginData:userDict inManagedObjectContext:[self appDelegate].managedObjectContext];
+                [User userWithLoginData:userDict inManagedObjectContext:appDelegate.managedObjectContext];
+                
+                NSError *error = nil;
+                [appDelegate.managedObjectContext save:&error];
 			} 
 		}
 	}
@@ -203,6 +208,7 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 		
 		// Store logged-in username
 		[appDelegate setLoggedInUsername:self.usernameField.text];
+        
 		
 		// We are now logged-in: update the iVar
 		[appDelegate setUserLoggedIn:YES];

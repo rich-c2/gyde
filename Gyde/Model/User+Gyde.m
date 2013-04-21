@@ -18,7 +18,7 @@
 	
 	NSFetchRequest *request = [[NSFetchRequest alloc] init];
 	request.entity = [NSEntityDescription entityForName:@"User" inManagedObjectContext:context];
-	request.predicate = [NSPredicate predicateWithFormat:@"username = %@", [basicInfo objectForKey:@"username"]];
+	request.predicate = [NSPredicate predicateWithFormat:@"username ==[c] %@", [basicInfo objectForKey:@"username"]];
 	
 	NSError *error = nil;
 	user = [[context executeFetchRequest:request error:&error] lastObject];
@@ -52,7 +52,7 @@
 	
 	NSFetchRequest *request = [[NSFetchRequest alloc] init];
 	request.entity = [NSEntityDescription entityForName:@"User" inManagedObjectContext:context];
-	request.predicate = [NSPredicate predicateWithFormat:@"username = %@", [loginData objectForKey:@"username"]];
+	request.predicate = [NSPredicate predicateWithFormat:@"username ==[c] %@", [loginData objectForKey:@"username"]];
 	
 	NSError *error = nil;
 	user = [[context executeFetchRequest:request error:&error] lastObject];
@@ -96,8 +96,8 @@
 	
 	NSFetchRequest *request = [[NSFetchRequest alloc] init];
 	request.entity = [NSEntityDescription entityForName:@"User" inManagedObjectContext:context];
-	request.predicate = [NSPredicate predicateWithFormat:@"username = %@", theUsername];
-	
+	request.predicate = [NSPredicate predicateWithFormat:@"username ==[c] %@", theUsername];
+    	
 	NSError *error = nil;
 	user = [[context executeFetchRequest:request error:&error] lastObject];
 	

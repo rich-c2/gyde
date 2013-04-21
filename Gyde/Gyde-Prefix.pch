@@ -15,11 +15,13 @@
     #import "NSManagedObject+Gyde.h"
 
     #import "Flurry.h"
-    #import "MBProgressHUD.h"
+#import "MBProgressHUD.h"
 
 #import "GlooRequestManager.h"
 #import "FacebookHelper.h"
 #import "NSString+Gyde.h"
+
+#import "MeVC.h"
 
     #import "AppDelegate.h"
     #import "User.h"

@@ -41,7 +41,7 @@
     BOOL viewingBack;
 }
 
-@property (assign) BOOL isLoved;
+@property (nonatomic, assign) BOOL isLoved;
 
 @property (nonatomic, retain) id <PhotoDetailsDelegate> delegate;
 @property (nonatomic, retain) NSString *selectedCity;

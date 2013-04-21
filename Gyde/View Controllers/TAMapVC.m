@@ -8,8 +8,6 @@
 
 #import "TAMapVC.h"
 #import "MyMapAnnotation.h"
-#import "Photo.h"
-#import "Venue.h"
 #import "TAScrollVC.h"
 
 #define BOTTOM_SHADOW_TAG 8000
@@ -37,6 +35,9 @@
 	
     [super viewDidLoad];
     
+    self.title = @"MAP";
+    self.navigationController.navigationBarHidden = NO;
+    
     // Hide the back button and
     // show the close button if this
     // is being viewed modally
@@ -44,6 +45,15 @@
     
         [self.backBtn setHidden:YES];
         [self.closeBtn setHidden:NO];
+                
+        UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [closeBtn setImage:[UIImage imageNamed:@"nav-photo-details-close-button.png"] forState:UIControlStateNormal];
+        [closeBtn setImage:[UIImage imageNamed:@"nav-photo-details-close-button-on.png"] forState:UIControlStateHighlighted];
+        [closeBtn setFrame:CGRectMake(267, 0, 43, 27)];
+        [closeBtn addTarget:self action:@selector(closeButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+        UIBarButtonItem *closeButtonItem = [[UIBarButtonItem alloc] initWithCustomView:closeBtn];
+        
+        self.navigationItem.rightBarButtonItem = closeButtonItem;
         
         // Hide the bottom shadow image view
         UIImageView *shadow = (UIImageView *)[self.view viewWithTag:BOTTOM_SHADOW_TAG];

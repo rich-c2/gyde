@@ -46,6 +46,19 @@
 - (void)viewDidLoad {
 	
     [super viewDidLoad];
+    
+    self.title = @"GUIDE";
+    
+    UIButton *saveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [saveBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
+    [saveBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
+    [saveBtn setTitle:@"SAVE" forState:UIControlStateNormal];
+    [saveBtn setFrame:CGRectMake(0, 0, 69, 27)];
+    [saveBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:10]];
+    [saveBtn addTarget:self action:@selector(submitButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveBtn];
+    
+	self.navigationItem.rightBarButtonItem = saveButtonItem;
 	
 	// Set the city label
 	self.cityLabel.text = self.guideCity;
@@ -84,6 +97,12 @@
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+
+    [super viewWillAppear:animated];
+    
+    self.navigationController.navigationBarHidden = NO;
+}
 
 #pragma RecommendsDelegate methods
 
@@ -124,7 +143,7 @@
 
 // The submit button was tapped by the user
 // This will trigger the "addguide" API call
-- (IBAction)submitButtonTapped:(id)sender {
+- (void)submitButtonTapped:(id)sender {
     
     if (self.delegate) {
     
@@ -183,8 +202,7 @@
                                      
                                      if (self.shareOnTwitter) {
                                          
-#warning TO DO: attach place name to "initial text"
-                                         NSString *initialText = @"";
+                                         NSString *initialText = [NSString stringWithFormat:@"%@ %@%@", json[@"guide"][@"title"], FRONT_END_ADDRESS, json[@"guide"][@"urlpath"]];
                                          [self sharePhotoOnTwitterWithText:initialText];
                                      }
                                      
@@ -192,18 +210,18 @@
                                          
                                          // Post a status update to the user's feed via the Graph API, and display an alert view
                                          // with the results or an error.
+                                         NSDictionary *guideDict = json[@"guide"];
+                                         
+                                         NSString *thumbURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, guideDict[@"thumb"]];
+                                         NSString *guideUrl = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, guideDict[@"urlpath"]];
+                                         NSString *description = guideDict[@"description"];
+                                         NSString *name = guideDict[@"title"];
                                          NSString *message = @"Gyde for iOS.";
                                          
-                                         NSDictionary *mediaDict = json[@"media"];
-                                         NSDictionary *pathsDict = mediaDict[@"paths"];
-                                         NSDictionary *urlDict = mediaDict[@"url"];
-                                         
-                                         NSString *description = mediaDict[@"caption"];
-                                         
                                          NSMutableDictionary *postParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-                                                                            [urlDict objectForKey:@"long"], @"link",
-                                                                            [NSString stringWithFormat:@"http://want.supergloo.net.au%@", [pathsDict objectForKey:@"squarethumb"]], @"picture",
-                                                                            @"Just took this photo on Gyde.", @"name",
+                                                                            guideUrl, @"link",
+                                                                            thumbURL, @"picture",
+                                                                            name, @"name",
                                                                             message, @"caption",
                                                                             description, @"description",
                                                                             nil];
@@ -312,6 +330,16 @@
             {
                 NSLog(@"service not available!");
             }
+        }
+        
+        else {
+            
+            NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                        delegate:self
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
         }
     }
     

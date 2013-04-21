@@ -26,7 +26,7 @@ typedef enum  {
 @interface TAScrollVC : UIViewController <RecommendsDelegate, PhotoDetailsDelegate, UIActionSheetDelegate, ModalMapDelegate> {
 	
     PhotosMode photosMode;
-    
+        
 	// Test views
 	UIImageView *mainView;
 

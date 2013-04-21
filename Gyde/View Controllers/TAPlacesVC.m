@@ -84,14 +84,24 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
 	
 	if (!loading && !venuesLoaded) {
 		
-		[self showLoading];
-		
-		loading = YES;
-	
-		// Start the location managing - tell it to start updating, 
-		// if it's not already doing so
-		[self searchVenues];
-	
+        [self initGetPlacesApi:^(BOOL success){
+            
+            if (success) {
+        
+                [self.placesTable reloadData];
+                [self initMapLocations];
+            }
+            
+            else {
+            
+                UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Locations error"
+                                                             message:@"There was an error finding nearby locations. Please check your network connection."
+                                                            delegate:self
+                                                   cancelButtonTitle:@"OK"
+                                                   otherButtonTitles:nil, nil];
+                [av show];
+            }
+        }];
 	}
 		
     [super viewWillAppear:animated];
@@ -121,7 +131,7 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
 	
     // Retrieve the Dictionary at the given index that's in self.followers
 	NSDictionary *place = [self.places objectAtIndex:[indexPath row]];
-	NSString *placeName = [place objectForKey:@"name"];
+	NSString *placeName = [place objectForKey:@"Name"];
     
     // Make sure the cell images don't scale
     [cell.backgroundView setContentMode:UIViewContentModeTop];
@@ -194,9 +204,9 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
 	NSDictionary *place = [self.places objectAtIndex:[indexPath row]];
 	
 	NSMutableDictionary *placeData = [NSMutableDictionary dictionary];
-	[placeData setObject:[place objectForKey:@"location"] forKey:@"location"];
-	[placeData setObject:[place objectForKey:@"name"] forKey:@"name"];
-	[placeData setObject:[place objectForKey:@"verified"] forKey:@"verified"];
+	[placeData setObject:[place objectForKey:@"Location"] forKey:@"location"];
+	[placeData setObject:[place objectForKey:@"Name"] forKey:@"name"];
+	[placeData setObject:@"0" forKey:@"verified"];
 	
 	[self.delegate placeSelected:placeData];
 	
@@ -213,6 +223,38 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
 	[mapItVC setDelegate:self.delegate];
 	
 	[self.navigationController pushViewController:mapItVC animated:YES];
+}
+
+
+- (void)initGetPlacesApi:(void(^)(BOOL success))completionBlock {
+    
+    loading = YES;
+    venuesLoaded = NO;
+    
+    NSString *latString = [NSString stringWithFormat:@"%f", [self.latitude doubleValue]];
+    NSString *lngString = [NSString stringWithFormat:@"%f", [self.longitude doubleValue]];
+    NSDictionary *params = @{ @"lat" : latString, @"lng" : lngString };
+    
+    [[GlooRequestManager sharedManager] post:@"getplaces"
+                                      params:params
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 loading = NO;
+                                 
+                                 if ([json[@"result"] isEqualToString:@"ok"]) {
+                                 
+                                     venuesLoaded = YES;
+                                     self.places = json[@"places"];
+                                     completionBlock(YES);
+                                 }
+                                 
+                                 else {
+                                 
+                                     completionBlock(NO);
+                                 }
+                             }
+                                  viewForHUD:self.view];
 }
 
 

@@ -22,7 +22,7 @@
 
 @interface TACitiesListVC : UIViewController {
 	
-	IBOutlet UIButton *setBtn;
+	UIButton *setBtn;
 	IBOutlet UIButton *locateBtn;
 
 	id <CitiesDelegate> delegate;
@@ -44,7 +44,7 @@
 
 @property (nonatomic, retain) NSManagedObjectContext *managedObjectContext;
 
-@property (nonatomic, retain) IBOutlet UIButton *setBtn;
+@property (nonatomic, retain) UIButton *setBtn;
 @property (nonatomic, retain) IBOutlet UIButton *locateBtn;
 
 @property (nonatomic, retain) id <CitiesDelegate> delegate;
@@ -57,7 +57,6 @@
 @property (nonatomic, retain) MyCoreLocation *locationManager;
 @property (nonatomic, retain) CLLocation *currentLocation;
 
-- (IBAction)goBack:(id)sender;
 - (IBAction)setButtonTapped:(id)sender;
 
 @end

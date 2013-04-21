@@ -46,6 +46,9 @@
 - (void)viewDidLoad {
 	
     [super viewDidLoad];
+    
+    self.title = @"PLACES";
+    self.navigationController.navigationBarHidden = NO;
 	
 	// The fetch size for each API call
     fetchSize = 20;
@@ -83,8 +86,14 @@
         
         self.selectedTabButton = guidesTabBtn;
 	
-        
-		UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithTitle:@"map" style:UIBarButtonItemStyleDone target:self action:@selector(viewImagesMap:)];
+        UIButton *mapBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [mapBtn setFrame:CGRectMake(0, 0, 54, 27)];
+        [mapBtn setTitle:@"MAP" forState:UIControlStateNormal];
+        [mapBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:12]];
+        [mapBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
+        [mapBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateHighlighted];
+        [mapBtn addTarget:self action:@selector(viewImagesMap:) forControlEvents:UIControlEventTouchUpInside];
+		UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithCustomView:mapBtn];
 		buttonItem.target = self;
 		
 		self.navigationItem.rightBarButtonItem = buttonItem;

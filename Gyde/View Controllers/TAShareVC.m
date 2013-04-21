@@ -21,6 +21,9 @@
 #import "CustomTabBarItem.h"
 #import "TAGuidesListVC.h"
 #import "MyMapAnnotation.h"
+#import "AFHTTPClient.h"
+#import "AFHTTPRequestOperation.h"
+#import "MBProgressHUD.h"
 
 #define SUBMIT_ALERT_TAG 9000
 #define MAIN_CONTENT_HEIGHT 367
@@ -124,6 +127,12 @@
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    
+    [super viewWillAppear:animated];
+    
+    self.navigationController.navigationBarHidden = YES;
+}
 
 - (void)viewDidAppear:(BOOL)animated {
 
@@ -301,17 +310,17 @@
     NSArray *locationKeys = [locationData allKeys];
 	NSMutableString *formattedAddress = [NSMutableString string];
 	
-	if ([locationKeys containsObject:@"address"])
-		[formattedAddress appendString:[locationData objectForKey:@"address"]];
+	if ([locationKeys containsObject:@"Address"])
+		[formattedAddress appendString:[locationData objectForKey:@"Address"]];
 	
-	if ([locationKeys containsObject:@"city"])
-		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"city"]];
+	if ([locationKeys containsObject:@"City"])
+		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"City"]];
 	
-	if ([locationKeys containsObject:@"state"])
-		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"state"]];
+	if ([locationKeys containsObject:@"State"])
+		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"State"]];
 	
-	if ([locationKeys containsObject:@"postalCode"])
-		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"postalCode"]];
+	if ([locationKeys containsObject:@"PostalCode"])
+		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"PostalCode"]];
 	
 	self.placeAddressLabel.text = formattedAddress;
 }
@@ -359,7 +368,8 @@
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
 	
-	if (submissionSuccess && alertView.tag == SUBMIT_ALERT_TAG) [self.navigationController popViewControllerAnimated:YES];
+	if (alertView.tag == SUBMIT_ALERT_TAG)
+        [self.navigationController popViewControllerAnimated:YES];
     
     else if (alertView.tag == FACEBOOK_ALERT_TAG) [self.navigationController popViewControllerAnimated:YES];
 }
@@ -428,189 +438,345 @@
 
 
 - (IBAction)submitPhoto:(id)sender {
-	
-	// Check that a Tag and a Location have been assigned
-	if (self.selectedTag && self.selectedCity) {
-				
-		// Create the URL for this request
-		NSString *methodName = @"Submit";
-        
-        NSString *username = [[self appDelegate] loggedInUsername];
-        NSString *token = [[self appDelegate] sessionToken];
-        NSString *latString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.latitude];
-        NSString *lonString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.longitude];
-        NSString *tagString = [NSString stringWithFormat:@"%i", [self.selectedTag.tagID intValue]];
-        NSString *cityString = [NSString stringWithFormat:@"%@", self.selectedCity];
-        
-        NSNumber *randomNum = [self generateRandomNumberWithMax:100000];
-        NSString *imageFilename = [NSString stringWithFormat:@"%i.jpg", [randomNum intValue]];
-        
-        NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.captionField.text, @"caption", username, @"username",
-                                       token, @"token", latString, @"latitude", lonString, @"longitude",
-                                       tagString, @"tag", cityString, @"city", @"image", @"type", nil];
-        
-        
-        if (self.placeData) {
-            
-            if ([self.placeData.allKeys containsObject:@"name"]) {
-                
-                if ([self.placeData objectForKey:@"name"] != nil)
-                    [params setObject:[self.placeData objectForKey:@"name"] forKey:@"place_title"];
-            }
-            
-            NSDictionary *locationData = [self.placeData objectForKey:@"location"];
-            NSArray *keys = locationData.allKeys;
-            
-            for (NSString *key in keys) {
-                
-                if ([locationData objectForKey:key] == nil)
-                    continue;
-                
-                NSString *val = [locationData objectForKey:key];
-                
-                if ([key isEqualToString:@"address"]) {
-                    
-                    [params setObject:val forKey:@"place_address"];
-                }
-                
-                if ([key isEqualToString:@"city"]) {
-                    
-                    [params setObject:val forKey:@"place_city"];
-                }
-                
-                if ([key isEqualToString:@"state"]) {
-                    
-                    [params setObject:val forKey:@"place_state"];
-                }
-                
-                if ([key isEqualToString:@"country"]) {
-                    
-                    [params setObject:val forKey:@"place_country"];
-                }
-                
-                if ([key isEqualToString:@"postalCode"]) {
-                    
-                    [params setObject:val forKey:@"place_postcode"];
-                }                
-            }
-            
-            if ([self.placeData.allKeys containsObject:@"verified"]) {
-                
-                if ([self.placeData objectForKey:@"verified"] != nil)
-                    [params setObject:[self.placeData objectForKey:@"verified"] forKey:@"verified"];
-            }
-        }
-        
-        if ([self.recommendToUsernames count] > 0) {
-            
-            NSString *recType = [NSString stringWithFormat:@"%i", 0];
-            [params setObject:recType forKey:@"rectype"];
-            
-            NSString *usernames = [NSString stringWithFormat:@"%@", [self.recommendToUsernames componentsJoinedByString:@","]];
-            [params setObject:usernames forKey:@"rec_usernames"];
-        }
-                
-		
-		[[GlooRequestManager sharedManager] post:methodName image:self.photo
-                                   imageParamKey:@"file" fileName:imageFilename params:params
-                                   dataLoadBlock:^(NSDictionary *json){}
-                                 completionBlock:^(NSDictionary *json){
-                                 
-                                     NSString *result = json[@"result"];
-                                     
-                                     if (![result isEqualToString:@"ok"]) {
-                                     
-                                         NSLog(@"ERROR: %@", json);
-                                         
-                                         UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Upload error"
-                                                                                      message:@"There was an error processing the upload of your place. Please check your network connection."
-                                                                                     delegate:self
-                                                                            cancelButtonTitle:@"OK"
-                                                                            otherButtonTitles:nil, nil];
-                                         [av show];
-                                         return;
-                                     }
-                                     
-                                     if ([result isEqualToString:@"ok"]) {
-                                         
-                                         if (self.shareOnTwitter) {
-                                         
-#warning TO DO: attach place name to "initial text"
-                                             NSString *initialText = @"";
-                                             [self sharePhotoOnTwitterWithText:initialText];
-                                         }
-                                         
-                                         if (postToFacebook) {
-                                             
-                                             // Post a status update to the user's feed via the Graph API, and display an alert view
-                                             // with the results or an error.                                             
-                                             NSString *message = @"Gyde for iOS.";
-                                             
-                                             NSDictionary *mediaDict = json[@"media"];
-                                             NSDictionary *pathsDict = mediaDict[@"paths"];
-                                             NSDictionary *urlDict = mediaDict[@"url"];
-                                             
-                                             NSString *description = mediaDict[@"caption"];
-                                             
-                                             NSMutableDictionary *postParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-                                                                                [urlDict objectForKey:@"long"], @"link",
-                                                                                [NSString stringWithFormat:@"http://want.supergloo.net.au%@", [pathsDict objectForKey:@"squarethumb"]], @"picture",
-                                                                                @"Just took this photo on Gyde.", @"name",
-                                                                                message, @"caption",
-                                                                                description, @"description",
-                                                                                nil];
-                                             
-                                             [self publishPhotoToFacebookFeed:postParams];
-                                         }
-                                         
-                                         if (addToGuide) {
-                                             
-                                             NSDictionary *mediaDict = json[@"media"];
-                                             NSString *guideID = [self.guideData objectForKey:@"guideID"];
-                                                                                                                                       
-                                             NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"token" : [[self appDelegate] sessionToken],
-                                             @"imageID" : mediaDict[@"code"], @"guideID" : guideID };
-                                                                                                                                                                                    
-                                             [[GlooRequestManager sharedManager] post:@"addtoguide"
-                                                                               params:params
-                                                                        dataLoadBlock:^(NSDictionary *json){}
-                                                                      completionBlock:^(NSDictionary *json){}
-                                                                        viewForHUD:nil];
-                                                    
-                                         }
-                                         
-                                         if (createNewGuide) {
-                                             
-                                             NSDictionary *mediaDict = json[@"media"];
-                                             [self initAddGuideAPIWithPhoto:mediaDict[@"code"] guideDetails:self.guideData];
-                                         }
-                                         
-                                         NSString *message = @"Your photo was successfully submitted.";
-                                         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success!"
-                                                                                             message:message
-                                                                                            delegate:self
-                                                                                   cancelButtonTitle:@"OK"
-                                                                                   otherButtonTitles:nil];
-                                         [alertView setTag:SUBMIT_ALERT_TAG];
-                                         [alertView show];
-                                         
-                                     }
-                                     
-                                     else {
-                                     
-                                         NSLog(@"ERROR: %@", json);
-                                     }
-                                 }
-                                      viewForHUD:self.view];
-	}
-	
-	else {
-		
-		NSString *message = @"Your image cannot be submitted until a city has been assigned and you have selected an acitivity.";
-		
-		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry!" message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+    
+    if (!self.selectedTag) {
+    
+        NSString *message = @"Please select an acitivity.";
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Can't upload place" message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
 		[alert show];
-	}
+        return;
+    }
+    
+    if (!self.selectedCity) {
+    
+        NSString *message = @"Your city is still be detecting.";
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Can't upload place" message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+		[alert show];
+        return;
+    }
+    
+    if (!self.placeData) {
+    
+        NSString *message = @"Please assign a location.";
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Can't upload place" message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+		[alert show];
+        return;
+    }
+    
+        
+    NSDictionary *params = [self getUploadParameters];
+    NSNumber *randomNum = [self generateRandomNumberWithMax:100000];
+    NSString *imageFilename = [NSString stringWithFormat:@"%i.jpg", [randomNum intValue]];
+            
+    [[GlooRequestManager sharedManager] post:@"Submit" image:self.photo
+                               imageParamKey:@"file" fileName:imageFilename params:params
+                               dataLoadBlock:^(NSDictionary *json){}
+                             completionBlock:^(NSDictionary *json){
+                             
+                                 NSString *result = json[@"result"];
+                                 
+                                 if (![result isEqualToString:@"ok"]) {
+                                 
+                                     NSLog(@"ERROR: %@", json);
+                                     
+                                     UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Upload error"
+                                                                                  message:@"There was an error processing the upload of your place. Please check your network connection."
+                                                                                 delegate:self
+                                                                        cancelButtonTitle:@"OK"
+                                                                        otherButtonTitles:nil, nil];
+                                     [av show];
+                                     return;
+                                 }
+                                 
+                                 if ([result isEqualToString:@"ok"]) {
+                                     
+                                     if (self.shareOnTwitter) {
+                                     
+                                         NSString *initialText = json[@"media"][@"address"][@"title"];
+                                         [self sharePhotoOnTwitterWithText:initialText];
+                                     }
+                                     
+                                     if (postToFacebook) {
+                                         
+                                         // Post a status update to the user's feed via the Graph API, and display an alert view
+                                         // with the results or an error.                                             
+                                         NSString *message = @"Gyde for iOS.";
+                                         
+                                         NSDictionary *mediaDict = json[@"media"];
+                                         NSDictionary *pathsDict = mediaDict[@"paths"];
+                                         NSDictionary *urlDict = mediaDict[@"url"];
+                                         
+                                         NSString *description = mediaDict[@"caption"];
+                                         
+                                         NSMutableDictionary *postParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+                                                                            [urlDict objectForKey:@"long"], @"link",
+                                                                            [NSString stringWithFormat:@"http://want.supergloo.net.au%@", [pathsDict objectForKey:@"squarethumb"]], @"picture",
+                                                                            @"Just took this photo on Gyde.", @"name",
+                                                                            message, @"caption",
+                                                                            description, @"description",
+                                                                            nil];
+                                         
+                                         [self publishPhotoToFacebookFeed:postParams];
+                                     }
+                                     
+                                     if (addToGuide) {
+                                         
+                                         NSDictionary *mediaDict = json[@"media"];
+                                         NSString *guideID = [self.guideData objectForKey:@"guideID"];
+                                                                                                                                   
+                                         NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"token" : [[self appDelegate] sessionToken],
+                                         @"imageID" : mediaDict[@"code"], @"guideID" : guideID };
+                                                                                                                                                                                
+                                         [[GlooRequestManager sharedManager] post:@"addtoguide"
+                                                                           params:params
+                                                                    dataLoadBlock:^(NSDictionary *json){}
+                                                                  completionBlock:^(NSDictionary *json){}
+                                                                    viewForHUD:nil];
+                                                
+                                     }
+                                     
+                                     if (createNewGuide) {
+                                         
+                                         NSDictionary *mediaDict = json[@"media"];
+                                         [self initAddGuideAPIWithPhoto:mediaDict[@"code"] guideDetails:self.guideData];
+                                     }
+                                     
+                                     NSString *message = @"Your photo was successfully submitted.";
+                                     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success!"
+                                                                                         message:message
+                                                                                        delegate:self
+                                                                               cancelButtonTitle:@"OK"
+                                                                               otherButtonTitles:nil];
+                                     [alertView setTag:SUBMIT_ALERT_TAG];
+                                     [alertView show];
+                                 }
+                                 
+                                 else {
+                                 
+                                     NSLog(@"ERROR: %@", json);
+                                     
+                                     NSString *message = @"There was an error submitting your place. Please check your network connection";
+                                     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Upload error"
+                                                                                         message:message
+                                                                                        delegate:self
+                                                                               cancelButtonTitle:@"OK"
+                                                                               otherButtonTitles:nil];
+                                     [alertView show];
+                                 }
+                             }
+                                  viewForHUD:self.view];
+}
+
+
+- (void)uploadPhoto {
+    
+    NSDictionary *params = [self getUploadParameters];
+    
+    NSNumber *randomNum = [self generateRandomNumberWithMax:100000];
+    NSString *imageFilename = [NSString stringWithFormat:@"%i.jpg", [randomNum intValue]];
+    NSData* photoImageData = [NSData dataWithData:UIImageJPEGRepresentation(self.photo, 0.7)];
+    
+    NSURL *url = [NSURL URLWithString:API_ADDRESS];
+    
+    AFHTTPClient *httpClient = [[AFHTTPClient alloc] initWithBaseURL:url];
+    NSMutableURLRequest *afRequest = [httpClient multipartFormRequestWithMethod:@"POST"
+                                                                           path:@"Submit"
+                                                                     parameters:params
+                                                      constructingBodyWithBlock:^(id <AFMultipartFormData>formData)
+                                      {
+                                          [formData appendPartWithFileData:photoImageData
+                                                                  mimeType:@"image/jpeg"
+                                                                      name:imageFilename];
+                                      }
+                                      ];
+    
+    
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    hud.mode = MBProgressHUDModeAnnularDeterminate;
+    hud.labelText = @"Uploading";
+    
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:afRequest];
+    [operation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+        
+        NSLog(@"Sent %d of %d bytes", totalBytesWritten, totalBytesExpectedToWrite);
+        hud.progress = (totalBytesWritten/totalBytesExpectedToWrite) * 100;
+    }];
+    
+    [operation setCompletionBlock:^{
+        NSLog(@"%@", operation.responseString); //Gives a very scary warning
+        [hud hide:YES];
+        
+//        NSString *result = json[@"result"];
+//        
+//        if (![result isEqualToString:@"ok"]) {
+//            
+//            NSLog(@"ERROR: %@", json);
+//            
+//            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Upload error"
+//                                                         message:@"There was an error processing the upload of your place. Please check your network connection."
+//                                                        delegate:self
+//                                               cancelButtonTitle:@"OK"
+//                                               otherButtonTitles:nil, nil];
+//            [av show];
+//            return;
+//        }
+//        
+//        if ([result isEqualToString:@"ok"]) {
+//            
+//            if (self.shareOnTwitter) {
+//                
+//#warning TO DO: attach place name to "initial text"
+//                NSString *initialText = @"";
+//                [self sharePhotoOnTwitterWithText:initialText];
+//            }
+//            
+//            if (postToFacebook) {
+//                
+//                // Post a status update to the user's feed via the Graph API, and display an alert view
+//                // with the results or an error.
+//                NSString *message = @"Gyde for iOS.";
+//                
+//                NSDictionary *mediaDict = json[@"media"];
+//                NSDictionary *pathsDict = mediaDict[@"paths"];
+//                NSDictionary *urlDict = mediaDict[@"url"];
+//                
+//                NSString *description = mediaDict[@"caption"];
+//                
+//                NSMutableDictionary *postParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+//                                                   [urlDict objectForKey:@"long"], @"link",
+//                                                   [NSString stringWithFormat:@"http://want.supergloo.net.au%@", [pathsDict objectForKey:@"squarethumb"]], @"picture",
+//                                                   @"Just took this photo on Gyde.", @"name",
+//                                                   message, @"caption",
+//                                                   description, @"description",
+//                                                   nil];
+//                
+//                [self publishPhotoToFacebookFeed:postParams];
+//            }
+//            
+//            if (addToGuide) {
+//                
+//                NSDictionary *mediaDict = json[@"media"];
+//                NSString *guideID = [self.guideData objectForKey:@"guideID"];
+//                
+//                NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"token" : [[self appDelegate] sessionToken],
+//                @"imageID" : mediaDict[@"code"], @"guideID" : guideID };
+//                
+//                [[GlooRequestManager sharedManager] post:@"addtoguide"
+//                                                  params:params
+//                                           dataLoadBlock:^(NSDictionary *json){}
+//                                         completionBlock:^(NSDictionary *json){}
+//                                              viewForHUD:nil];
+//                
+//            }
+//            
+//            if (createNewGuide) {
+//                
+//                NSDictionary *mediaDict = json[@"media"];
+//                [self initAddGuideAPIWithPhoto:mediaDict[@"code"] guideDetails:self.guideData];
+//            }
+//            
+//            NSString *message = @"Your photo was successfully submitted.";
+//            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success!"
+//                                                                message:message
+//                                                               delegate:self
+//                                                      cancelButtonTitle:@"OK"
+//                                                      otherButtonTitles:nil];
+//            [alertView setTag:SUBMIT_ALERT_TAG];
+//            [alertView show];
+//        }
+//        
+//        else {
+//            
+//            NSLog(@"ERROR: %@", json);
+//            
+//            NSString *message = @"Your photo was successfully submitted.";
+//            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Upload error"
+//                                                                message:json
+//                                                               delegate:self
+//                                                      cancelButtonTitle:@"OK"
+//                                                      otherButtonTitles:nil];
+//            [alertView show];
+//        }
+    }];
+    
+    [operation start];
+}
+
+
+- (NSDictionary *)getUploadParameters {
+    
+    NSString *username = [[self appDelegate] loggedInUsername];
+    NSString *token = [[self appDelegate] sessionToken];
+    NSString *latString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.latitude];
+    NSString *lonString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.longitude];
+    NSString *tagString = [NSString stringWithFormat:@"%i", [self.selectedTag.tagID intValue]];
+    NSString *cityString = [NSString stringWithFormat:@"%@", self.selectedCity];
+    
+    NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.captionField.text, @"caption", username, @"username",
+                                   token, @"token", latString, @"latitude", lonString, @"longitude",
+                                   tagString, @"tag", cityString, @"city", @"image", @"type", nil];
+    
+    if (self.placeData) {
+        
+        if ([self.placeData.allKeys containsObject:@"name"]) {
+            
+            if ([self.placeData objectForKey:@"name"] != nil)
+                [params setObject:[self.placeData objectForKey:@"name"] forKey:@"place_title"];
+        }
+        
+        NSDictionary *locationData = [self.placeData objectForKey:@"location"];
+        NSArray *keys = locationData.allKeys;
+        
+        for (NSString *key in keys) {
+            
+            if ([locationData objectForKey:key] == nil)
+                continue;
+            
+            NSString *val = [locationData objectForKey:key];
+            
+            if ([key isEqualToString:@"Address"]) {
+                
+                [params setObject:val forKey:@"place_address"];
+            }
+            
+            if ([key isEqualToString:@"City"]) {
+                
+                [params setObject:val forKey:@"place_city"];
+            }
+            
+            if ([key isEqualToString:@"State"]) {
+                
+                [params setObject:val forKey:@"place_state"];
+            }
+            
+            if ([key isEqualToString:@"Country"]) {
+                
+                [params setObject:val forKey:@"place_country"];
+            }
+            
+            if ([key isEqualToString:@"postalCode"]) {
+                
+                [params setObject:val forKey:@"place_postcode"];
+            }
+        }
+        
+        if ([self.placeData.allKeys containsObject:@"verified"]) {
+            
+            if ([self.placeData objectForKey:@"verified"] != nil)
+                [params setObject:[self.placeData objectForKey:@"verified"] forKey:@"verified"];
+        }
+    }
+    
+    if ([self.recommendToUsernames count] > 0) {
+        
+        NSString *recType = [NSString stringWithFormat:@"%i", 0];
+        [params setObject:recType forKey:@"rectype"];
+        
+        NSString *usernames = [NSString stringWithFormat:@"%@", [self.recommendToUsernames componentsJoinedByString:@","]];
+        [params setObject:usernames forKey:@"rec_usernames"];
+    }
+    
+    return params;
 }
 
 
@@ -692,41 +858,31 @@
 	return randomNum;
 }
 
+- (void)initGetCityApi:(void(^)(BOOL success))completionBlock {
 
-- (void)startReverseGeocoding {
-
-    if (!self.reverseGeocoder)
-        self.reverseGeocoder = [[CLGeocoder alloc] init];
+    NSString *latString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.latitude];
+    NSString *lngString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.longitude];
+    NSDictionary *params = @{ @"lat" : latString, @"lng" : lngString };
     
-    [self.reverseGeocoder reverseGeocodeLocation:self.currentLocation
-                               completionHandler:^(NSArray *placemarks, NSError *error) {
-                                   
-                                   if (!error) {
-                                       
-                                       //Get nearby address
-                                       CLPlacemark *placemark = [placemarks objectAtIndex:0];
-                                       
-                                       if (placemark.subLocality)
-                                           self.selectedCity = placemark.subLocality;
-                                       else if (placemark.locality)
-                                           self.selectedCity = placemark.locality;
-                                       
-                                       if (self.selectedCity)
-                                           [self.cityLabel setText:self.selectedCity];
-                                       else {
-                                           
-                                           UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Location error" message:@"There was an error calculating your current city. Please check your network connection." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-                                           [av show];
-                                       }
-                                   }
-                                   
-                                   else {
-                                       
-                                       UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Location error" message:@"There was an error calculating your current city. Please check your network connection." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-                                       [av show];
-                                   }
-                                   
-                               }];
+    [[GlooRequestManager sharedManager] post:@"getcity"
+                                      params:params
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 if ([json[@"result"] isEqualToString:@"ok"]) {
+                                 
+                                     self.selectedCity = json[@"city"];
+                                     [self.cityLabel setText:self.selectedCity];
+                                     
+                                     completionBlock(YES);
+                                 }
+                                 
+                                 else {
+                                 
+                                     completionBlock(NO);
+                                 }
+                             }
+                                  viewForHUD:nil];
 }
 
 
@@ -742,61 +898,50 @@
 
 
 - (void)configureCurrentLocation {
-
-	if (self.imageReferenceURL != nil) {
 		
-		ALAssetsLibrary *assetslibrary = [[ALAssetsLibrary alloc] init];
-		__block double latitude;
-		__block double longitude;
-		
-		NSLog(@"referenceURL:%@", self.imageReferenceURL);
-		
-		[assetslibrary assetForURL:self.imageReferenceURL resultBlock:^(ALAsset *asset) {
-			
-            NSDictionary *metadata = asset.defaultRepresentation.metadata;
-            NSLog(@"IMAGE METADATA:%@", metadata);
-			CLLocation *loc = ((CLLocation*)[asset valueForProperty:ALAssetPropertyLocation]);
-			CLLocationCoordinate2D c = loc.coordinate;
-			longitude = (double)c.longitude;
-			latitude  = (double)c.latitude;
-			
-			// Make lat/lon easier to reference
-			double lat = latitude;
-			double lon = longitude;
-			
-			CLLocation *newCurrentLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
-			self.currentLocation = newCurrentLocation;
-			
-			NSLog(@"RETRIEVE LOCATION DATA");
-			[self startReverseGeocoding];
-            
-			// Place the current location
-			// coordiantes on the map view
-			[self initSingleLocation];
-			
-		} failureBlock:^(NSError *error) {
-			
-			NSLog(@"error:%@", error);
-			
-			NSString *errorMessage = @"Could not detect your city.";
-			[self.cityLabel setText:errorMessage];
-			
-			NSString *message = @"There was an error retrieving the location of the image. Please make sure location services are enabled for this app in your phone's Settings";
-			
-			UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error retrieving location" message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-			[alert show];			
-		}];
-	}
-	
-	else {
-		
-		NSLog(@"RETRIEVE LOCATION DATA NOW");
-		[self startReverseGeocoding];
+    ALAssetsLibrary *assetslibrary = [[ALAssetsLibrary alloc] init];
+    __block double latitude;
+    __block double longitude;
+    
+    NSLog(@"referenceURL:%@", self.imageReferenceURL);
+    
+    [assetslibrary assetForURL:self.imageReferenceURL resultBlock:^(ALAsset *asset) {
+        
+        NSDictionary *metadata = asset.defaultRepresentation.metadata;
+        NSLog(@"IMAGE METADATA:%@", metadata);
+        CLLocation *loc = ((CLLocation*)[asset valueForProperty:ALAssetPropertyLocation]);
+        CLLocationCoordinate2D c = loc.coordinate;
+        longitude = (double)c.longitude;
+        latitude  = (double)c.latitude;
+        
+        // Make lat/lon easier to reference
+        double lat = latitude;
+        double lon = longitude;
+        
+        CLLocation *newCurrentLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
+        self.currentLocation = newCurrentLocation;
+        
+        [self initGetCityApi:^(BOOL success){
+        
+            NSLog(@"SUCCESSFULLY FOUND CITY!");
+        }];
         
         // Place the current location
         // coordiantes on the map view
         [self initSingleLocation];
-	}
+        
+    } failureBlock:^(NSError *error) {
+        
+        NSLog(@"error:%@", error);
+        
+        NSString *errorMessage = @"Could not detect your city.";
+        [self.cityLabel setText:errorMessage];
+        
+        NSString *message = @"There was an error retrieving the location of the image. Please make sure location services are enabled for this app in your phone's Settings";
+        
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error retrieving location" message:message delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];			
+    }];
 }
 
 
@@ -1100,9 +1245,7 @@
 	
 	if ([self.recommendToUsernames count] > 0)
 		usernames = [NSString stringWithFormat:@"&rec_usernames=%@", [self.recommendToUsernames componentsJoinedByString:@","]];
-	
-	//NSString *postString = [NSString stringWithFormat:@"username=%@&title=%@&city=%@&tag=%i&imageIDs=%@&private=%i&token=%@%@", username, title, city, tagID, imageIDs, privateInt, [self appDelegate].sessionToken, usernames];
-	
+		
     NSDictionary *params;
     if ([self.recommendToUsernames count] > 0)
         params = @{ @"username" : username, @"title" : title, @"description" : description, @"city" : city, @"tag" : tagID, @"imageIDs" :  imageIDs, @"private" : privateInt, @"token" : [self appDelegate].sessionToken, @"rec_usernames" : usernames };
@@ -1130,6 +1273,8 @@
 }
 
 - (void)sharePhotoOnTwitterWithText:(NSString *)initialText {
+    
+    NSString *tweetText = [NSString stringWithFormat:@"Gyde for iOS: %@", initialText];
 
     //Check for Social Framework availability (iOS 6)
     if(NSClassFromString(@"SLComposeViewController") != nil){
@@ -1140,7 +1285,7 @@
             {
                 NSLog(@"service available");
                 SLComposeViewController *composeViewController = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
-                [composeViewController setInitialText:initialText];
+                [composeViewController setInitialText:tweetText];
                 [composeViewController addImage:self.photoView.image];
                 [self presentViewController:composeViewController animated:YES completion:nil];
             }
@@ -1148,6 +1293,16 @@
             {
                 NSLog(@"service not available!");
             }
+        }
+        
+        else {
+            
+            NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                        delegate:self
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
         }
     }
     
@@ -1157,7 +1312,7 @@
         if ([TWTweetComposeViewController canSendTweet]) {
             TWTweetComposeViewController *tweetVC = [[TWTweetComposeViewController alloc] init];
             [tweetVC addImage:self.photoView.image];
-            [tweetVC setInitialText:initialText];
+            [tweetVC setInitialText:tweetText];
             [self presentModalViewController:tweetVC animated:YES];
         }
         

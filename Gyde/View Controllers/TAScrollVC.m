@@ -53,6 +53,20 @@
 	// The fetch size for each API call
     fetchSize = 20;
 	
+    // Add single tap gesture recognizer to map view
+    // The action will be goToMapDetails:
+    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc]
+                                   initWithTarget:self action:@selector(showNav:)];
+    tgr.numberOfTapsRequired = 1;
+    tgr.numberOfTouchesRequired = 1;
+    [self.photosScrollView addGestureRecognizer:tgr];
+}
+
+- (void)showNav:(id)sender {
+
+    BOOL hide = self.navigationController.navigationBarHidden;
+    
+    [self.navigationController setNavigationBarHidden:!hide animated:YES];
 }
 
 
@@ -79,7 +93,6 @@
 	
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
-
 
 - (void)viewWillAppear:(BOOL)animated {
 
@@ -119,6 +132,13 @@
                 break;
         }
 	}
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+
+    [super viewDidAppear:animated];
+    
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
 }
 
 
@@ -180,8 +200,10 @@
 	[mapVC setMapMode:MapModeSingle];
     [mapVC setPhoto:photo];
     [mapVC setDelegate:self];
+    
+    UINavigationController *navC = [[UINavigationController alloc] initWithRootViewController:mapVC];
 	
-	[self.navigationController presentModalViewController:mapVC animated:YES];
+	[self.navigationController presentModalViewController:navC animated:YES];
 }
 
 
@@ -211,6 +233,16 @@
             {
                 NSLog(@"service not available!");
             }
+        }
+        
+        else {
+            
+            NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                        delegate:self
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
         }
     }
     
@@ -586,8 +618,9 @@
 #pragma MY METHODS
 
 - (void)initNavBar {
-
-	self.navigationController.navigationBarHidden = YES;
+    
+    self.title = @"PLACES";
+    self.navigationController.navigationBarHidden = NO;
 }
 
 
@@ -625,7 +658,7 @@
 		
 		Photo *photo = [self.photos objectAtIndex:i];
 		
-		CGRect viewFrame = CGRectMake(xPos, yPos, IMAGE_WIDTH, 367.0);
+		CGRect viewFrame = CGRectMake(xPos, yPos, IMAGE_WIDTH, 380.0);
 		
 		BOOL loved = (([currentUser.lovedPhotos containsObject:photo]) ? YES : NO);        
         
@@ -660,7 +693,7 @@
 		sViewContentHeight = yPos;
 	}
 	
-	CGFloat newHeight = self.photosScrollView.frame.size.height;
+	CGFloat newHeight = self.view.bounds.size.height;
 	CGFloat newWidth = xPos;
 	
 	// Update the scroll view's content height
@@ -776,7 +809,7 @@
 	
 	// HTTPFetcher
 	loveFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-												 receiver:self action:@selector(receivedUnloveResponse:)];
+												 receiver:self action:@selector(receivedUnLoveResponse:)];
 	[loveFetcher start];
 }
 
@@ -859,7 +892,7 @@
 		NSInteger imageViewTag = IMAGE_VIEW_TAG + scrollIndex;
         TAPhotoDetails *photoView = (TAPhotoDetails *)[self.photosScrollView viewWithTag:imageViewTag];
         
-        [photoView updateLoveButton:YES];
+        [photoView updateLoveButton:NO];
 	}
 	
 //	[loveFetcher release];

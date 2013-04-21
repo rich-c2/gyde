@@ -10,7 +10,6 @@
 #import "AppDelegate.h"
 #import "HTTPFetcher.h"
 #import "JSONKit.h"
-#import "SVProgressHUD.h"
 #import "GridImage.h"
 #import "TAProfileVC.h"
 #import "TAImageDetailsVC.h"
@@ -22,6 +21,7 @@
 #import "UIImageView+AFNetworking.h"
 #import <Accounts/Accounts.h>
 #import <QuartzCore/QuartzCore.h>
+#import "UIScrollView+SVPullToRefresh.h"
 
 #define IMAGE_VIEW_TAG 7000
 #define GRID_IMAGE_WIDTH 75.0
@@ -76,6 +76,20 @@
     tgr.numberOfTouchesRequired = 1;
     [self.guideMap addGestureRecognizer:tgr];
     
+    
+    __weak TAGuideDetailsVC *weakSelf = self;
+    
+    // Add table refresh handler
+    [self.photosTable addPullToRefreshWithActionHandler:^{
+        
+        // prepend data to dataSource, insert cells at top of table view
+        // call [tableView.pullToRefreshView stopAnimating] when done
+        [weakSelf getGuide:^(BOOL finished){
+        
+            [weakSelf.photosTable.pullToRefreshView stopAnimating];
+        }];
+    }];
+    
 }
 
 
@@ -123,7 +137,7 @@
 	if (!guideLoaded && !loading) {
 		
 		// Fetch the guide data
-		[self getGuide];
+		[self getGuide:^(BOOL finished){}];
 		
 		[self initIsLovedAPI];
 	}
@@ -325,15 +339,18 @@
     
     self.photosCountBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     self.photosCountBtn.backgroundColor = [UIColor clearColor];
+    [self.photosCountBtn setImageEdgeInsets:UIEdgeInsetsMake(-1, 0, 0, 0)];
+    [self.photosCountBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
     [self.photosCountBtn setTitleColor:[UIColor colorWithRed:142.0/255.0 green:140.0/255.0 blue:136.0/255.0 alpha:1.0] forState:UIControlStateNormal];
     self.photosCountBtn.titleLabel.font = [UIFont fontWithName:@"FreightSansBold" size:13];
     self.photosCountBtn.frame = CGRectMake(titleXPos + 70, subHeadingYPos, 100, 30);
+    [self.photosCountBtn setImage:[UIImage imageNamed:@"photos-count-icon.png"] forState:UIControlStateNormal];
     [headerView addSubview:self.photosCountBtn];
     
     self.timeElapsedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     self.timeElapsedBtn.backgroundColor = [UIColor clearColor];
-    [self.timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
-    [self.timeElapsedBtn setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
+    [self.timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(-1, 0, 0, 0)];
+    [self.timeElapsedBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
     [self.timeElapsedBtn setTitleColor:[UIColor colorWithRed:142.0/255.0 green:140.0/255.0 blue:136.0/255.0 alpha:1.0] forState:UIControlStateNormal];
     self.timeElapsedBtn.titleLabel.font = [UIFont fontWithName:@"FreightSansBold" size:13];
     self.timeElapsedBtn.frame = CGRectMake((titleXPos + (70 * 2)), subHeadingYPos, 100, 30);
@@ -461,7 +478,7 @@
 }
 
 
-- (void)getGuide {
+- (void)getGuide:(void(^)(BOOL finished))completionBlock {
 		
     NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"guideID" : [self guideID], @"token" : [[self appDelegate] sessionToken] };
     
@@ -486,6 +503,8 @@
                                  }
                                  
                                  else {}
+                                 
+                                 completionBlock(YES);
                              }
                                   viewForHUD:self.view];
 }
@@ -540,7 +559,7 @@
     newPhotosFrame.origin.x = btnXPos;
     [self.photosCountBtn setFrame:newPhotosFrame];
     
-    [self.photosCountBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
+    [self.photosCountBtn setImageEdgeInsets:UIEdgeInsetsMake(-1, 0, 0, 0)];
     [self.photosCountBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
     [self.photosCountBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
     
@@ -555,17 +574,17 @@
     CGSize elapsedTimeSize = [elapsedTimeString sizeWithFont:btnFont];
     
     btnXPos += photosWidth + leftPadding;
-//    CGRect newTimeFrame = self.timeElapsedBtn.frame;
-//    newTimeFrame.size.width = 13 + elapsedTimeSize.width;
-//    newTimeFrame.origin.x = btnXPos;
-//    [self.timeElapsedBtn setFrame:newTimeFrame];
-//    
-//    [self.timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-//    [self.timeElapsedBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-//    [self.timeElapsedBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-//    
-//    [self.timeElapsedBtn setBackgroundColor:[UIColor clearColor]];
-//    [self.timeElapsedBtn setTitle:elapsedTimeString forState:UIControlStateNormal];
+    CGRect newTimeFrame = self.timeElapsedBtn.frame;
+    newTimeFrame.size.width = 13 + elapsedTimeSize.width;
+    newTimeFrame.origin.x = btnXPos;
+    [self.timeElapsedBtn setFrame:newTimeFrame];
+    
+    [self.timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(-1, 0, 0, 0)];
+    [self.timeElapsedBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
+    [self.timeElapsedBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+    
+    [self.timeElapsedBtn setBackgroundColor:[UIColor clearColor]];
+    [self.timeElapsedBtn setTitle:elapsedTimeString forState:UIControlStateNormal];
     
     self.descriptionView.text = @"There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour";
 	
@@ -593,6 +612,16 @@
             {
                 NSLog(@"service not available!");
             }
+        }
+        
+        else {
+            
+            NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                        delegate:self
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
         }
     }
     
@@ -634,7 +663,6 @@
     
     else [self initLoveAPI];
 }
-
 
 - (void)initIsLovedAPI {
     
@@ -873,6 +901,8 @@
 - (void)updatePhotosArray:(NSArray *)imagesArray {
 	
 	NSManagedObjectContext *context = [self appDelegate].managedObjectContext;
+    
+    if (self.photos.count > 0) [self.photos removeAllObjects];
 	
 	for (NSDictionary *image in imagesArray) {
 		
@@ -955,8 +985,8 @@
         
         NSString *name = [self.guideData objectForKey:@"title"];
         NSString *message = @"Gyde for iOS.";
-        NSString *link = @"http://want.supergloo.net.au";
-        NSString *thumbURL = [NSString stringWithFormat:@"http://want.supergloo.net.au%@", [self.guideData objectForKey:@"thumb"]];
+        NSString *link = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [self.guideData objectForKey:@"urlpath"] ];
+        NSString *thumbURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [self.guideData objectForKey:@"thumb"]];
         NSString *description = @"There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form.";
         
         self.postParams = [NSMutableDictionary dictionaryWithObjectsAndKeys:

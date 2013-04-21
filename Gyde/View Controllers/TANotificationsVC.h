@@ -12,7 +12,6 @@
 #define ME_NEWS_TAG 9001
 #define FOLLOWING_NEWS_TAG 9002
 
-@class HTTPFetcher;
 @class MyGuidesTableCell;
 
 typedef enum  {
@@ -25,9 +24,7 @@ typedef enum  {
 
     NotificationsCategory selectedCategory;
     
-	HTTPFetcher *recommendationsFetcher;
-	HTTPFetcher *followingFetcher;
-	HTTPFetcher *meFetcher;
+    HTTPFetcher *recommendationsFetcher;
 	
 	BOOL loading;
 	BOOL recommendationsLoaded;

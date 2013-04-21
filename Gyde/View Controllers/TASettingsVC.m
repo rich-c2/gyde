@@ -519,9 +519,17 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 
 - (void)initNavBar {
 	
-	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
+	self.title = @"SETTINGS";
+	self.navigationController.navigationBarHidden = NO;
 	
+    UIButton *logoutBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [logoutBtn setImage:[UIImage imageNamed:@"nav-bar-logout-button.png"] forState:UIControlStateNormal];
+    [logoutBtn setImage:[UIImage imageNamed:@"nav-bar-logout-button-on.png"] forState:UIControlStateHighlighted];
+    [logoutBtn setFrame:CGRectMake(0, 0, 34, 27)];
+    [logoutBtn addTarget:self action:@selector(logoutButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *logoutButtonItem = [[UIBarButtonItem alloc] initWithCustomView:logoutBtn];
+    
+	self.navigationItem.rightBarButtonItem = logoutButtonItem;
 }
 
 

@@ -91,6 +91,5 @@
 - (IBAction)goBack:(id)sender;
 - (IBAction)shareButtonTapped:(id)sender;
 - (IBAction)recommendButtonTapped:(id)sender;
-- (IBAction)initFacebookLogin:(id)sender;
 
 @end

@@ -8,14 +8,12 @@
 
 #import "TACitiesListVC.h"
 #import "SVProgressHUD.h"
-#import "AppDelegate.h"
 #import "JSONKit.h"
 #import "HTTPFetcher.h"
 #import "XMLFetcher.h"
 #import "StringHelper.h"
 #import "MyCoreLocation.h"
 #import "DefaultCityCell.h"
-#import "City.h"
 
 #define TABLE_START_Y_POS 78.0
 #define TABLE_END_Y_POS 88.0
@@ -357,15 +355,19 @@
 }
 
 
-- (IBAction)goBack:(id)sender {
-
-	[self.navigationController popViewControllerAnimated:YES];
-}
-
-
 - (void)initNavBar {
 
-	self.navigationController.navigationBarHidden = YES;
+    self.title = @"CITIES";
+	self.navigationController.navigationBarHidden = NO;
+    
+    self.setBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.setBtn setImage:[UIImage imageNamed:@"nav-bar-set-button.png"] forState:UIControlStateNormal];
+    [self.setBtn setImage:[UIImage imageNamed:@"nav-bar-set-button-on.png"] forState:UIControlStateHighlighted];
+    [self.setBtn setFrame:CGRectMake(0, 0, 54, 27)];
+    [self.setBtn addTarget:self action:@selector(setButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *setButtonItem = [[UIBarButtonItem alloc] initWithCustomView:self.setBtn];
+    
+	self.navigationItem.rightBarButtonItem = setButtonItem;
 }
 
 
@@ -575,9 +577,7 @@
 	// Execute the fetch request
 	NSError *error = nil;
 	self.cities = [self.managedObjectContext executeFetchRequest:fetchRequest error:&error];
-    
-    NSLog(@"FETCHED CITIES:%@", self.cities);
-    
+        
     [self.citiesTable reloadData];
 }
 

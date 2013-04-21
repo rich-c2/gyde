@@ -55,6 +55,10 @@
 		9B0ED50816FED80A00F0177C /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B0ED50716FED80A00F0177C /* CoreLocation.framework */; };
 		9B0ED50A16FED81500F0177C /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B0ED50916FED81500F0177C /* MapKit.framework */; };
 		9B0ED50C16FED81B00F0177C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B0ED50B16FED81B00F0177C /* ImageIO.framework */; };
+		9B1C2DF917222502003B0887 /* photos-count-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B1C2DF717222502003B0887 /* photos-count-icon.png */; };
+		9B1C2DFA17222502003B0887 /* photos-count-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B1C2DF817222502003B0887 /* photos-count-icon@2x.png */; };
+		9B1C2E0217222950003B0887 /* UIScrollView+SVInfiniteScrolling.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B1C2DFF17222950003B0887 /* UIScrollView+SVInfiniteScrolling.m */; };
+		9B1C2E0317222950003B0887 /* UIScrollView+SVPullToRefresh.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B1C2E0117222950003B0887 /* UIScrollView+SVPullToRefresh.m */; };
 		9B8632371704606E005ACFC7 /* TAImageGridVC.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B8632351704606D005ACFC7 /* TAImageGridVC.m */; };
 		9B8632381704606E005ACFC7 /* TAImageGridVC.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9B8632361704606D005ACFC7 /* TAImageGridVC.xib */; };
 		9B86323D17046126005ACFC7 /* DefaultCityCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B86323B17046126005ACFC7 /* DefaultCityCell.m */; };
@@ -75,6 +79,12 @@
 		9B8632611704644E005ACFC7 /* ProfileGuidesTableCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9B86325F1704644E005ACFC7 /* ProfileGuidesTableCell.xib */; };
 		9B863265170466AC005ACFC7 /* TACommentsVC.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B863263170466AB005ACFC7 /* TACommentsVC.m */; };
 		9B863266170466AC005ACFC7 /* TACommentsVC.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9B863264170466AB005ACFC7 /* TACommentsVC.xib */; };
+		9BAA06761723A4ED0067BC28 /* big-map-marker-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BAA06741723A4ED0067BC28 /* big-map-marker-icon.png */; };
+		9BAA06771723A4ED0067BC28 /* big-map-marker-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BAA06751723A4ED0067BC28 /* big-map-marker-icon@2x.png */; };
+		9BAA067B1723A9310067BC28 /* navBarBack.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BAA06791723A9310067BC28 /* navBarBack.png */; };
+		9BAA067C1723A9310067BC28 /* navBarBack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BAA067A1723A9310067BC28 /* navBarBack@2x.png */; };
+		9BAA067F1723AA6A0067BC28 /* navBarButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BAA067D1723AA6A0067BC28 /* navBarButton.png */; };
+		9BAA06801723AA6A0067BC28 /* navBarButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BAA067E1723AA6A0067BC28 /* navBarButton@2x.png */; };
 		9BBCDA061706A8F400694627 /* Venue+Gyde.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BBCDA051706A8F400694627 /* Venue+Gyde.m */; };
 		9BBCDA0A1706A92100694627 /* User+Gyde.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BBCDA091706A92100694627 /* User+Gyde.m */; };
 		9BBCDA0D1706A93C00694627 /* Tag+Gyde.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BBCDA0C1706A93C00694627 /* Tag+Gyde.m */; };
@@ -687,6 +697,13 @@
 		9B0ED50916FED81500F0177C /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		9B0ED50B16FED81B00F0177C /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		9B0ED50D16FEDA4F00F0177C /* Gyde 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Gyde 2.xcdatamodel"; sourceTree = "<group>"; };
+		9B1C2DF717222502003B0887 /* photos-count-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "photos-count-icon.png"; sourceTree = "<group>"; };
+		9B1C2DF817222502003B0887 /* photos-count-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "photos-count-icon@2x.png"; sourceTree = "<group>"; };
+		9B1C2DFD17222950003B0887 /* SVPullToRefresh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVPullToRefresh.h; sourceTree = "<group>"; };
+		9B1C2DFE17222950003B0887 /* UIScrollView+SVInfiniteScrolling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIScrollView+SVInfiniteScrolling.h"; sourceTree = "<group>"; };
+		9B1C2DFF17222950003B0887 /* UIScrollView+SVInfiniteScrolling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIScrollView+SVInfiniteScrolling.m"; sourceTree = "<group>"; };
+		9B1C2E0017222950003B0887 /* UIScrollView+SVPullToRefresh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIScrollView+SVPullToRefresh.h"; sourceTree = "<group>"; };
+		9B1C2E0117222950003B0887 /* UIScrollView+SVPullToRefresh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIScrollView+SVPullToRefresh.m"; sourceTree = "<group>"; };
 		9B8632341704606D005ACFC7 /* TAImageGridVC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TAImageGridVC.h; sourceTree = "<group>"; };
 		9B8632351704606D005ACFC7 /* TAImageGridVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TAImageGridVC.m; sourceTree = "<group>"; };
 		9B8632361704606D005ACFC7 /* TAImageGridVC.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TAImageGridVC.xib; sourceTree = "<group>"; };
@@ -717,6 +734,12 @@
 		9B863262170466AA005ACFC7 /* TACommentsVC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TACommentsVC.h; sourceTree = "<group>"; };
 		9B863263170466AB005ACFC7 /* TACommentsVC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TACommentsVC.m; sourceTree = "<group>"; };
 		9B863264170466AB005ACFC7 /* TACommentsVC.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TACommentsVC.xib; sourceTree = "<group>"; };
+		9BAA06741723A4ED0067BC28 /* big-map-marker-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "big-map-marker-icon.png"; sourceTree = "<group>"; };
+		9BAA06751723A4ED0067BC28 /* big-map-marker-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "big-map-marker-icon@2x.png"; sourceTree = "<group>"; };
+		9BAA06791723A9310067BC28 /* navBarBack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = navBarBack.png; sourceTree = "<group>"; };
+		9BAA067A1723A9310067BC28 /* navBarBack@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "navBarBack@2x.png"; sourceTree = "<group>"; };
+		9BAA067D1723AA6A0067BC28 /* navBarButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = navBarButton.png; sourceTree = "<group>"; };
+		9BAA067E1723AA6A0067BC28 /* navBarButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "navBarButton@2x.png"; sourceTree = "<group>"; };
 		9BBCDA041706A8F400694627 /* Venue+Gyde.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Venue+Gyde.h"; sourceTree = "<group>"; };
 		9BBCDA051706A8F400694627 /* Venue+Gyde.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Venue+Gyde.m"; sourceTree = "<group>"; };
 		9BBCDA081706A92100694627 /* User+Gyde.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "User+Gyde.h"; sourceTree = "<group>"; };
@@ -1557,6 +1580,18 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		9B1C2DFC17222950003B0887 /* SVPullToRefresh */ = {
+			isa = PBXGroup;
+			children = (
+				9B1C2DFD17222950003B0887 /* SVPullToRefresh.h */,
+				9B1C2DFE17222950003B0887 /* UIScrollView+SVInfiniteScrolling.h */,
+				9B1C2DFF17222950003B0887 /* UIScrollView+SVInfiniteScrolling.m */,
+				9B1C2E0017222950003B0887 /* UIScrollView+SVPullToRefresh.h */,
+				9B1C2E0117222950003B0887 /* UIScrollView+SVPullToRefresh.m */,
+			);
+			path = SVPullToRefresh;
+			sourceTree = "<group>";
+		};
 		9BBCDA3A1706BB6100694627 /* Categories */ = {
 			isa = PBXGroup;
 			children = (
@@ -1634,6 +1669,14 @@
 		9BFCDDE816FF027E002B9D7C /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				9BAA067D1723AA6A0067BC28 /* navBarButton.png */,
+				9BAA067E1723AA6A0067BC28 /* navBarButton@2x.png */,
+				9BAA06791723A9310067BC28 /* navBarBack.png */,
+				9BAA067A1723A9310067BC28 /* navBarBack@2x.png */,
+				9BAA06741723A4ED0067BC28 /* big-map-marker-icon.png */,
+				9BAA06751723A4ED0067BC28 /* big-map-marker-icon@2x.png */,
+				9B1C2DF717222502003B0887 /* photos-count-icon.png */,
+				9B1C2DF817222502003B0887 /* photos-count-icon@2x.png */,
 				9BC8E94D172193860067EBE7 /* footer-email-button-down.png */,
 				9BC8E94E172193860067EBE7 /* footer-email-button-down@2x.png */,
 				9BC8E94F172193860067EBE7 /* footer-email-button.png */,
@@ -2066,6 +2109,7 @@
 		9BFCDDEA16FF027E002B9D7C /* Vendor */ = {
 			isa = PBXGroup;
 			children = (
+				9B1C2DFC17222950003B0887 /* SVPullToRefresh */,
 				9B0E82C71712FC2F0029F88F /* MBProgressHUD */,
 				9B0E82A11712FBA60029F88F /* SBJson */,
 				9BFCDEE416FF13A1002B9D7C /* MyMapAnnotation */,
@@ -2090,18 +2134,33 @@
 				9BBCDA1F1706AEB000694627 /* EditProfileVC.h */,
 				9BBCDA201706AEB000694627 /* EditProfileVC.m */,
 				9BBCDA211706AEB100694627 /* EditProfileVC.xib */,
-				9B863262170466AA005ACFC7 /* TACommentsVC.h */,
-				9B863263170466AB005ACFC7 /* TACommentsVC.m */,
-				9B863264170466AB005ACFC7 /* TACommentsVC.xib */,
 				9B86325817046431005ACFC7 /* TAFriendsVC.h */,
 				9B86325917046431005ACFC7 /* TAFriendsVC.m */,
 				9B86325A17046432005ACFC7 /* TAFriendsVC.xib */,
 				9B8632531704640C005ACFC7 /* TASettingsVC.h */,
 				9B8632541704640D005ACFC7 /* TASettingsVC.m */,
 				9B8632551704640D005ACFC7 /* TASettingsVC.xib */,
+				9BFCDE2316FF07C0002B9D7C /* TACitiesVC.h */,
+				9BFCDE2416FF07C0002B9D7C /* TACitiesVC.m */,
+				9BFCDE2516FF07C0002B9D7C /* TACitiesVC.xib */,
+				9BFCDE3416FF09BB002B9D7C /* TACitiesListVC.h */,
+				9BFCDE3516FF09BB002B9D7C /* TACitiesListVC.m */,
+				9BFCDE3616FF09BB002B9D7C /* TACitiesListVC.xib */,
+				9B863262170466AA005ACFC7 /* TACommentsVC.h */,
+				9B863263170466AB005ACFC7 /* TACommentsVC.m */,
+				9B863264170466AB005ACFC7 /* TACommentsVC.xib */,
 				9B86324E170462D2005ACFC7 /* TACreateGuideVC.h */,
 				9B86324F170462D3005ACFC7 /* TACreateGuideVC.m */,
 				9B863250170462D3005ACFC7 /* TACreateGuideVC.xib */,
+				9BFCDE8E16FF0E0E002B9D7C /* TAForgottenPasswordVC.h */,
+				9BFCDE8F16FF0E0F002B9D7C /* TAForgottenPasswordVC.m */,
+				9BFCDE9016FF0E0F002B9D7C /* TAForgottenPasswordVC.xib */,
+				9BFCDECE16FF1155002B9D7C /* TAGuideDetailsVC.h */,
+				9BFCDECF16FF1155002B9D7C /* TAGuideDetailsVC.m */,
+				9BFCDED016FF1155002B9D7C /* TAGuideDetailsVC.xib */,
+				9BF2817E17045AFD00952D52 /* TAGuidesListVC.h */,
+				9BF2817F17045AFD00952D52 /* TAGuidesListVC.m */,
+				9BF2818017045AFD00952D52 /* TAGuidesListVC.xib */,
 				9B8632441704628D005ACFC7 /* CameraOverlayVC.h */,
 				9B8632451704628D005ACFC7 /* CameraOverlayVC.m */,
 				9B8632461704628E005ACFC7 /* CameraOverlayVC.xib */,
@@ -2114,24 +2173,15 @@
 				9BF2818317045B3800952D52 /* TAMapItVC.h */,
 				9BF2818417045B3800952D52 /* TAMapItVC.m */,
 				9BF2818517045B3900952D52 /* TAMapItVC.xib */,
-				9BF2817E17045AFD00952D52 /* TAGuidesListVC.h */,
-				9BF2817F17045AFD00952D52 /* TAGuidesListVC.m */,
-				9BF2818017045AFD00952D52 /* TAGuidesListVC.xib */,
 				9BF2817917045ABE00952D52 /* TAPlacesVC.h */,
 				9BF2817A17045ABE00952D52 /* TAPlacesVC.m */,
 				9BF2817B17045ABE00952D52 /* TAPlacesVC.xib */,
 				9BFCDEDA16FF12F1002B9D7C /* TAMapVC.h */,
 				9BFCDEDB16FF12F1002B9D7C /* TAMapVC.m */,
 				9BFCDEDC16FF12F1002B9D7C /* TAMapVC.xib */,
-				9BFCDECE16FF1155002B9D7C /* TAGuideDetailsVC.h */,
-				9BFCDECF16FF1155002B9D7C /* TAGuideDetailsVC.m */,
-				9BFCDED016FF1155002B9D7C /* TAGuideDetailsVC.xib */,
 				9BFCDEB116FF0F22002B9D7C /* TALoginLandingVC.h */,
 				9BFCDEB216FF0F22002B9D7C /* TALoginLandingVC.m */,
 				9BFCDEB316FF0F22002B9D7C /* TALoginLandingVC.xib */,
-				9BFCDE8E16FF0E0E002B9D7C /* TAForgottenPasswordVC.h */,
-				9BFCDE8F16FF0E0F002B9D7C /* TAForgottenPasswordVC.m */,
-				9BFCDE9016FF0E0F002B9D7C /* TAForgottenPasswordVC.xib */,
 				9BFCDE8616FF0DC9002B9D7C /* TAGuidesLandingVC.h */,
 				9BFCDE8716FF0DC9002B9D7C /* TAGuidesLandingVC.m */,
 				9BFCDE8816FF0DC9002B9D7C /* TAGuidesLandingVC.xib */,
@@ -2150,15 +2200,9 @@
 				9BFCDE5016FF0B4B002B9D7C /* TAUsersVC.h */,
 				9BFCDE5116FF0B4B002B9D7C /* TAUsersVC.m */,
 				9BFCDE5216FF0B4B002B9D7C /* TAUsersVC.xib */,
-				9BFCDE3416FF09BB002B9D7C /* TACitiesListVC.h */,
-				9BFCDE3516FF09BB002B9D7C /* TACitiesListVC.m */,
-				9BFCDE3616FF09BB002B9D7C /* TACitiesListVC.xib */,
 				9BFCDE2F16FF097C002B9D7C /* TARegisterVC.h */,
 				9BFCDE3016FF097C002B9D7C /* TARegisterVC.m */,
 				9BFCDE3116FF097C002B9D7C /* TARegisterVC.xib */,
-				9BFCDE2316FF07C0002B9D7C /* TACitiesVC.h */,
-				9BFCDE2416FF07C0002B9D7C /* TACitiesVC.m */,
-				9BFCDE2516FF07C0002B9D7C /* TACitiesVC.xib */,
 				9BFCDE1016FF06B7002B9D7C /* TALandingVC.h */,
 				9BFCDE1116FF06B7002B9D7C /* TALandingVC.m */,
 				9BFCDE1216FF06B7002B9D7C /* TALandingVC.xib */,
@@ -2890,6 +2934,14 @@
 				9BC8E96A172193860067EBE7 /* footer-tweet-button-down@2x.png in Resources */,
 				9BC8E96B172193860067EBE7 /* footer-tweet-button.png in Resources */,
 				9BC8E96C172193860067EBE7 /* footer-tweet-button@2x.png in Resources */,
+				9B1C2DF917222502003B0887 /* photos-count-icon.png in Resources */,
+				9B1C2DFA17222502003B0887 /* photos-count-icon@2x.png in Resources */,
+				9BAA06761723A4ED0067BC28 /* big-map-marker-icon.png in Resources */,
+				9BAA06771723A4ED0067BC28 /* big-map-marker-icon@2x.png in Resources */,
+				9BAA067B1723A9310067BC28 /* navBarBack.png in Resources */,
+				9BAA067C1723A9310067BC28 /* navBarBack@2x.png in Resources */,
+				9BAA067F1723AA6A0067BC28 /* navBarButton.png in Resources */,
+				9BAA06801723AA6A0067BC28 /* navBarButton@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3055,6 +3107,8 @@
 				9BCB5E8A17185F6A00403EC9 /* NSManagedObject+Gyde.m in Sources */,
 				9BD72FD3171973EA007FE74C /* NSString+Gyde.m in Sources */,
 				9BE4B529171D6225006CA748 /* NSMutableDictionary+ImageMetadata.m in Sources */,
+				9B1C2E0217222950003B0887 /* UIScrollView+SVInfiniteScrolling.m in Sources */,
+				9B1C2E0317222950003B0887 /* UIScrollView+SVPullToRefresh.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

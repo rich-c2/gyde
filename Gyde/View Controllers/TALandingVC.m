@@ -10,7 +10,6 @@
 #import "TALoginVC.h"
 #import "TARegisterVC.h"
 #import "AppDelegate.h"
-#import "TAFeedVC.h"
 #import "TANotificationsVC.h"
 #import "TAProfileVC.h"
 #import "TAExploreVC.h"
@@ -74,6 +73,7 @@
 
 - (void)initNavBar {
 
+    self.title = @"Back";
 	[self.navigationController setNavigationBarHidden:YES animated:YES];
 }
 
@@ -100,7 +100,7 @@
 	appDelegate.sessionToken = nil;
     
     // Re-configure each tab's view controllers
-    [(TAFeedVC *)[[(UINavigationController *)[appDelegate.tabBarController.viewControllers objectAtIndex:0] viewControllers] objectAtIndex:0] willLogout];
+    [(MeVC *)[[(UINavigationController *)[appDelegate.tabBarController.viewControllers objectAtIndex:0] viewControllers] objectAtIndex:0] willLogout];
     
     [(TAExploreVC *)[[(UINavigationController *)[appDelegate.tabBarController.viewControllers objectAtIndex:1] viewControllers] objectAtIndex:0] willLogout];
     

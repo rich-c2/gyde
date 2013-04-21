@@ -39,6 +39,7 @@
 @property (nonatomic, retain) NSURL *imageReferenceURL;
 
 @property (nonatomic, retain) UIImage *photo;
+@property (nonatomic, assign) BOOL waitingToSave;
 
 - (void)willLogout;
 

@@ -109,9 +109,6 @@
 - (void)viewDidLoad {
 	
     [super viewDidLoad];
-	
-	// Setup nav bar
-	[self initNavBar];
     
 	// Init our main table data array
 	self.tableData = [NSArray array];
@@ -182,6 +179,9 @@
 - (void)viewWillAppear:(BOOL)animated {
 	
 	[super viewWillAppear:animated];
+    
+    // Setup nav bar
+	[self initNavBar];
 }
 
 

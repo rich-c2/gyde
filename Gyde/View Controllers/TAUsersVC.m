@@ -47,6 +47,7 @@
     
 	// Set the title of this view controller
 	self.title = self.navigationTitle;
+    self.navigationController.navigationBarHidden = NO;
 	
 	if (self.usersMode == UsersModeFindViaContacts) {
 		

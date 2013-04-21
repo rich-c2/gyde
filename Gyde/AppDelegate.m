@@ -459,15 +459,15 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 	[[UINavigationBar appearance] setTintColor:navColor];
 	[[UINavigationBar appearance] setTitleTextAttributes:navBarTextAttributes];
         
-    [[UIBarButtonItem appearance] setBackgroundImage:[[UIImage imageNamed:@"nav-bar-back-button.png"]
-                                                      resizableImageWithCapInsets:UIEdgeInsetsMake(14, 4, 14, 4)]
+    [[UIBarButtonItem appearance] setBackgroundImage:[[UIImage imageNamed:@"navBarButton.png"]
+                                                      resizableImageWithCapInsets:UIEdgeInsetsMake(0, 5, 0, 5)]
                                             forState:UIControlStateNormal
                                           barMetrics:UIBarMetricsDefault];
     
-//    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:[[UIImage imageNamed:@"navbarBack.png"]
-//                                                                resizableImageWithCapInsets:UIEdgeInsetsMake(14, 14, 14, 4)]
-//                                                      forState:UIControlStateNormal
-//                                                    barMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:[[UIImage imageNamed:@"navBarBack.png"]
+                                                                resizableImageWithCapInsets:UIEdgeInsetsMake(0, 11, 0, 5)]
+                                                      forState:UIControlStateNormal
+                                                    barMetrics:UIBarMetricsDefault];
 }
 
 - (void)removeNavbarAppearanceProxies {

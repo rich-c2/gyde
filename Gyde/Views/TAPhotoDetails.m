@@ -16,10 +16,11 @@
 #import "User.h"
 #import "Photo.h"
 #import "Tag.h"
+#import <QuartzCore/QuartzCore.h>
 
 #define MAIN_WIDTH 301
 #define MAIN_HEIGHT 301
-#define CONTAINER_START_POINT 27.0
+#define CONTAINER_START_POINT 47.0
 #define SCROLL_COLUMN_WIDTH 272.0
 #define SCROLL_COLUMN_PADDING 10
 #define SCROLL_COLUMN_INNER_PADDING 14
@@ -273,18 +274,20 @@
         self.selectedCity = [photo.city title];
         
         CGFloat topActionsBtnYPos = 10.0;
-        CGFloat usernameXPos = 33.0;
-        CGFloat fontSize = 13.0;
+        CGFloat usernameXPos = 52.0;
+        CGFloat fontSize = 14.0;
         CGFloat topRightActionsXPos = 160.0;
         CGFloat btnXPos = topRightActionsXPos;
         CGFloat leftPadding = 10.0;
-        UIFont *btnFont = [UIFont systemFontOfSize:fontSize];
+        UIFont *btnFont = [UIFont systemFontOfSize:13.0];
         
         
         // Avatar image view
-		UIImageView *aView = [[UIImageView alloc] initWithFrame:CGRectMake(11.0, topActionsBtnYPos, 15.0, 15.0)];
-		[aView setBackgroundColor:[UIColor lightGrayColor]];
-		self.avatarView = aView;
+        CGFloat avatarWidth = 30.0;
+        CGFloat avatarHeight = 30.0;
+		self.avatarView = [[UIImageView alloc] initWithFrame:CGRectMake(15.0, topActionsBtnYPos, avatarWidth, avatarHeight)];
+		[self.avatarView setBackgroundColor:[UIColor lightGrayColor]];
+        self.avatarView.layer.cornerRadius = 3.0;
 		[self addSubview:self.avatarView];
 		
 		// Start downloading Avatar image
@@ -299,7 +302,7 @@
         [btn setBackgroundColor:[UIColor clearColor]];
 		[btn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
 		[btn addTarget:self action:@selector(usernameTapped:) forControlEvents:UIControlEventTouchUpInside];
-		[btn.titleLabel setFont:[UIFont boldSystemFontOfSize:fontSize]];
+		[btn.titleLabel setFont:[UIFont fontWithName:@"FreightSansBold" size:14]];
 		[btn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
         [btn sizeToFit];
         
@@ -310,7 +313,7 @@
         CGSize expectedLabelSize = [[photo timeElapsed] sizeWithFont:btnFont];
         
 		UIButton *timeElapsedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[timeElapsedBtn setFrame:CGRectMake(btnXPos, usernameYPos, (13 + expectedLabelSize.width), 15.0)];
+		[timeElapsedBtn setFrame:CGRectMake(usernameXPos, usernameYPos + 18, (13 + expectedLabelSize.width), 15.0)];
         [timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
         [timeElapsedBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
         [timeElapsedBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
@@ -327,39 +330,15 @@
         CGFloat timeElapsedWidth = timeElapsedBtn.frame.size.width;
         
 		[self addSubview:timeElapsedBtn];
-		
-        
-        // LOVES BUTTON
-        btnXPos += (timeElapsedWidth + leftPadding);
-        CGSize expectedLovesSize = [[NSString stringWithFormat:@"%i", [photo.lovesCount intValue]] sizeWithFont:btnFont];
-        
-		UIButton *lovesCountBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[lovesCountBtn setFrame:CGRectMake(btnXPos, usernameYPos, (14+expectedLovesSize.width), 15.0)];
-        [lovesCountBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-        [lovesCountBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-        [lovesCountBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-        
-        [lovesCountBtn setBackgroundColor:[UIColor clearColor]];
-		[lovesCountBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [lovesCountBtn.titleLabel setFont:btnFont];
-        [lovesCountBtn setImage:[UIImage imageNamed:@"photo-loves-icon.png"] forState:UIControlStateNormal];
-        
-        [lovesCountBtn setTitle:[NSString stringWithFormat:@"%i", [photo.lovesCount intValue]] forState:UIControlStateNormal];
-        
-        [lovesCountBtn setEnabled:NO];
-        [lovesCountBtn setAdjustsImageWhenDisabled:NO];
-        
-        CGFloat lovesCountWidth = lovesCountBtn.frame.size.width;
-        
-		[self addSubview:lovesCountBtn];
         
         
         // LOVE ACTION BUTTON
-        btnXPos += (lovesCountWidth + leftPadding);
-        CGFloat loveActionBtnWidth = 34.0;
+        btnXPos = 199.0;
+        CGFloat loveActionBtnWidth = 50.0;
+        CGFloat loveActionBtnHeight = 30.0;
         
 		UIButton *loveActionBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[loveActionBtn setFrame:CGRectMake(btnXPos, usernameYPos, loveActionBtnWidth, 16.0)];
+		[loveActionBtn setFrame:CGRectMake(btnXPos, usernameYPos, loveActionBtnWidth, loveActionBtnHeight)];
         [loveActionBtn setBackgroundColor:[UIColor clearColor]];
         [loveActionBtn addTarget:self action:@selector(loveButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         
@@ -386,7 +365,7 @@
         btnXPos += (loveActionWidth + 5.0);
 		CGFloat flipYPos = topActionsBtnYPos;
 		UIButton *flipButton = [UIButton buttonWithType:UIButtonTypeCustom];
-		[flipButton setFrame:CGRectMake(btnXPos, flipYPos, 25.0, 16.0)];
+		[flipButton setFrame:CGRectMake(btnXPos, flipYPos, 50.0, 30.0)];
 		
         
         [flipButton setImage:[UIImage imageNamed:@"photo-flip-to-back-button.png"] forState:UIControlStateNormal];
@@ -399,7 +378,6 @@
         self.flipBtn = flipButton;
         
 		[self addSubview:self.flipBtn];
-        //[self.flipBtn release];
         
         
 		
@@ -503,64 +481,79 @@
 		
 		// IMAGE URL
 		self.urlString = [photo url];
-
         
-		// CAPTION
-		CGFloat labelYPos = 325.0;
-		UILabel *captionLabel = [[UILabel alloc] initWithFrame:CGRectMake(11.0, labelYPos, MAIN_WIDTH, 17.0)];
-		[captionLabel setText:[photo caption]];
-		[captionLabel setBackgroundColor:[UIColor clearColor]];
-        [captionLabel setFont:[UIFont systemFontOfSize:12.0]];
-		[self addSubview:captionLabel];
-        
+        UIButton *mapMarkerBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+		[mapMarkerBtn setFrame:CGRectMake(15.0, 348.0, 15.0, 22.0)];
+        [mapMarkerBtn setImage:[UIImage imageNamed:@"big-map-marker-icon.png"] forState:UIControlStateNormal];
+        [mapMarkerBtn setBackgroundColor:[UIColor clearColor]];
+		[mapMarkerBtn addTarget:self action:@selector(locationTitleTapped) forControlEvents:UIControlEventTouchUpInside];
+		[self addSubview:mapMarkerBtn];
         
 		// LOCATION TITLE
-		CGFloat locationYPos = 342.0;
-        CGFloat locationBtnXPos = 11.0;
+		CGFloat locationYPos = 348.0;
+        CGFloat locationBtnXPos = 28.0;
         NSString *locationTitle = [photo.venue title];
         if ([locationTitle length] == 0) locationTitle = @"[untitled]";
         
-        CGSize locationSize = [locationTitle sizeWithFont:[UIFont boldSystemFontOfSize:9.0]];
+        CGSize locationSize = [locationTitle sizeWithFont:[UIFont fontWithName:@"FreightSansBold" size:13.0]];
         
 		UIButton *locationTitleBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[locationTitleBtn setFrame:CGRectMake(11.0, locationYPos, 13 + locationSize.width, 16.0)];
-        [locationTitleBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-        [locationTitleBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-        [locationTitleBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-        [locationTitleBtn setImage:[UIImage imageNamed:@"photo-map-marker-icon.png"] forState:UIControlStateNormal];
+		[locationTitleBtn setFrame:CGRectMake(locationBtnXPos, locationYPos, 13 + locationSize.width, 16.0)];
 		[locationTitleBtn setTitle:locationTitle forState:UIControlStateNormal];
         [locationTitleBtn setBackgroundColor:[UIColor clearColor]];
 		[locationTitleBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
 		[locationTitleBtn addTarget:self action:@selector(locationTitleTapped) forControlEvents:UIControlEventTouchUpInside];
-		[locationTitleBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:9.0]];
+		[locationTitleBtn.titleLabel setFont:[UIFont fontWithName:@"FreightSansBold" size:13.0]];
         
 		[self addSubview:locationTitleBtn];
-        
-        CGFloat locationWidth = 13 + locationSize.width;
-        
+                
         
 		// TAG TITLE
-        CGFloat tagBtnXPos = locationBtnXPos + locationWidth + 10.0;
+        CGFloat tagBtnXPos = locationBtnXPos;
+        CGFloat tagBtnYPos = locationYPos + 10.0;
         NSString *tagTitle = [photo.tag title];
         
         CGSize tagSize = [tagTitle sizeWithFont:[UIFont boldSystemFontOfSize:9.0]];
         
 		UIButton *tagBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[tagBtn setFrame:CGRectMake(tagBtnXPos, locationYPos, 14 + tagSize.width, 16.0)];
-        [tagBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-        [tagBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-        [tagBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-        [tagBtn setImage:[UIImage imageNamed:@"photo-tag-icon.png"] forState:UIControlStateNormal];
+		[tagBtn setFrame:CGRectMake(tagBtnXPos, tagBtnYPos, 14 + tagSize.width, 16.0)];
+//        [tagBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
+//        [tagBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
+//        [tagBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+//        [tagBtn setImage:[UIImage imageNamed:@"photo-tag-icon.png"] forState:UIControlStateNormal];
 		
         [tagBtn setBackgroundColor:[UIColor clearColor]];
 		
 		[tagBtn addTarget:self action:@selector(tagTitleTapped) forControlEvents:UIControlEventTouchUpInside];
         
         [tagBtn setTitle:tagTitle forState:UIControlStateNormal];
-        [tagBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [tagBtn setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
 		[tagBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:9.0]];
         
 		[self addSubview:tagBtn];
+        
+        
+        // LOVES BUTTON
+        CGFloat lovesBtnXPos = 265.0;
+        CGSize expectedLovesSize = [[NSString stringWithFormat:@"%i", [photo.lovesCount intValue]] sizeWithFont:btnFont];
+        
+		UIButton *lovesCountBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+		[lovesCountBtn setFrame:CGRectMake(lovesBtnXPos, locationYPos, (14+expectedLovesSize.width), 15.0)];
+        [lovesCountBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
+        [lovesCountBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
+        [lovesCountBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+        
+        [lovesCountBtn setBackgroundColor:[UIColor clearColor]];
+		[lovesCountBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [lovesCountBtn.titleLabel setFont:btnFont];
+        [lovesCountBtn setImage:[UIImage imageNamed:@"photo-loves-icon.png"] forState:UIControlStateNormal];
+        
+        [lovesCountBtn setTitle:[NSString stringWithFormat:@"%i", [photo.lovesCount intValue]] forState:UIControlStateNormal];
+        
+        [lovesCountBtn setEnabled:NO];
+        [lovesCountBtn setAdjustsImageWhenDisabled:NO];
+        
+		[self addSubview:lovesCountBtn];
 	}
 	
 	return self;

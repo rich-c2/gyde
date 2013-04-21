@@ -11,15 +11,14 @@
 #import "StringHelper.h"
 #import "JSONKit.h"
 #import "HTTPFetcher.h"
-#import "SVProgressHUD.h"
 #import "TANotificationsManager.h"
 #import "TAProfileVC.h"
 #import "TAImageDetailsVC.h"
-#import "AsyncCell.h"
 #import "TAGuideDetailsVC.h"
 #import "CustomTabBarItem.h"
 #import "MyGuidesTableCell.h"
 #import "TAScrollVC.h"
+#import "SVPullToRefresh.h"
 
 #define RECOMMENDATIONS_TAB_X_POS 76.0
 #define ME_TAB_X_POS 166.0
@@ -61,8 +60,8 @@
 	
 	// Setup nav bar
 	[self initNavBar];
-	
-	self.notifications = [NSMutableArray array];
+    
+    self.notifications = [NSMutableArray array];
     
     // By default, we want the view to be in 'Recommends mode'
     // and for the recommends button to be selected
@@ -73,6 +72,23 @@
     [recommendsBtn setHighlighted:NO];
     
     self.selectedTabButton = recommendsBtn;
+    
+    __weak TANotificationsVC *weakSelf = self;
+    
+    // Add table refresh handler
+    [self.recommendationsTable addPullToRefreshWithActionHandler:^{
+        
+        // prepend data to dataSource, insert cells at top of table view
+        // call [tableView.pullToRefreshView stopAnimating] when done
+        [weakSelf initGetNotificationsApi:^(BOOL finished){
+            
+            [weakSelf.recommendationsTable reloadData];
+            [weakSelf.recommendationsTable.pullToRefreshView stopAnimating];
+        }];
+    }];
+	
+    
+    
 }
 
 - (void)viewDidUnload {
@@ -102,12 +118,10 @@
 	
 	[super viewWillAppear:animated];
 	
-	if (!loading && !recommendationsLoaded) { 
-		
-		[self showLoading];
-		
-		[self initGetNotificationsAPI];
-	}
+	[self initGetNotificationsApi:^(BOOL finished){
+    
+        [self.recommendationsTable reloadData];
+    }];
 }
 
 
@@ -252,14 +266,8 @@
 
 - (void)initNavBar {
 	
-	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
-}
-
-
-- (IBAction)goBack:(id)sender {
-	
-	[self.navigationController popViewControllerAnimated:YES];
+	self.title = @"NOTIFICATIONS";
+	self.navigationController.navigationBarHidden = NO;
 }
 
 
@@ -296,193 +304,38 @@
 }
 
 
+- (void)initGetNotificationsApi:(void(^)(BOOL finished))completionBlock {
 
-/*	This function calls the "getnotifications" API 
-	The API will return how many new/unreceived notifications
-	have been registered in the CMS for this user. It takes one parameter: a category
-	string which dictates whether the API will fetch ME, recommendations or following
-	notifications.
-*/	
-- (void)initGetNotificationsAPI {
-	
-	NSString *category = [self getSelectedCategory];
-		
+    NSString *category = [self getSelectedCategory];
+    
 	//NSInteger page = 1;
 	//NSInteger size = 5;
 	//&pg=%i&sz=%i
-	
-	NSString *postString = [NSString stringWithFormat:@"username=%@&token=%@&category=%@", [self appDelegate].loggedInUsername, [[self appDelegate] sessionToken], category];
-	
-	NSLog(@"postString:%@", postString);
-	
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"getnotifications";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// JSONFetcher
-	if (self.selectedCategory == NotificationsCategoryRecommendations) {
 		
-		recommendationsFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-																receiver:self action:@selector(receivedRecommendationsResponse:)];
-		[recommendationsFetcher start];
-	}
-	
-	else if (self.selectedCategory == NotificationsCategoryMe) {
-		
-		meFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-																receiver:self action:@selector(receivedMeResponse:)];
-		[meFetcher start];
-	}
-	
-	else if (self.selectedCategory == NotificationsCategoryFollowing) {
-		
-		followingFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-																receiver:self action:@selector(receivedFollowingResponse:)];
-		[followingFetcher start];
-	}
-}
-
-
-// Example fetcher response handling
-- (void)receivedRecommendationsResponse:(HTTPFetcher *)aFetcher {
+    NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"token" : [[self appDelegate] sessionToken], @"category" : category };
     
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	NSAssert(aFetcher == recommendationsFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	//NSLog(@"PRINTING RECOMMENDATIONS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	loading = NO;
-	
-	if ([theJSONFetcher.data length] > 0) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		// Build an array from the dictionary for easy access to each entry
-		self.reccomendations = [results objectForKey:@"notifications"];
-	}
-	
-	// If the ME tab is currently selected then update the UI
-	if (self.selectedCategory == NotificationsCategoryRecommendations) {
-		
-		// Get the main array (self.notifications) to point
-		// to the reccomendations array
-		self.notifications = self.reccomendations;
-		
-		// Update table
-		[self.recommendationsTable reloadData];
-	}
-	
-	[self hideLoading];
-	
-	recommendationsFetcher = nil;
-}
-
-
-- (void)receivedMeResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	NSAssert(aFetcher == meFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	//NSLog(@"PRINTING RECOMMENDATIONS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-				
-		// Build an array from the dictionary for easy access to each entry
-		self.meItems = [results objectForKey:@"notifications"];
-	}
-	
-	
-	// Stop showing the loading animation
-	[self hideLoading];
-	
-	// If the ME tab is currently selected then update the UI
-	if (self.selectedCategory == NotificationsCategoryMe) {
-	
-		// Get the main array (self.notifications) to point
-		// to the meItems array
-		self.notifications = self.meItems;
-		
-		// Update table
-		[self.recommendationsTable reloadData];
-	}
-	
-	meFetcher = nil;
-}
-
-
-- (void)receivedFollowingResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	NSAssert(aFetcher == followingFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	//NSLog(@"PRINTING FOLLOWING:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		// Build an array from the dictionary for easy access to each entry
-		self.following = [results objectForKey:@"notifications"];
-	}
-	
-	
-	// Stop showing the loading animation
-	[self hideLoading];
-	
-	// If the ME tab is currently selected then update the UI
-	if (self.selectedCategory == NotificationsCategoryFollowing) {
-		
-		// Get the main array (self.notifications) to point
-		// to the meItems array
-		self.notifications = self.following;
-		
-		// Update table
-		[self.recommendationsTable reloadData];
-	}
-	
-	followingFetcher = nil;
-}
-
-
-- (void)showLoading {
-	
-	[SVProgressHUD showInView:self.view status:nil networkIndicator:YES posY:-1 maskType:SVProgressHUDMaskTypeClear];
-}
-
-
-- (void)hideLoading {
-	
-	[SVProgressHUD dismissWithSuccess:@"Loaded!"];
+    [[GlooRequestManager sharedManager] post:@"getnotifications" params:params
+                               dataLoadBlock:^(NSDictionary *json){}
+                             completionBlock:^(NSDictionary *json){
+                             
+                                 if (self.selectedCategory == NotificationsCategoryRecommendations) {
+                                     self.reccomendations = json[@"notifications"];
+                                     self.notifications = self.reccomendations;
+                                 }
+                                 
+                                 else if (self.selectedCategory == NotificationsCategoryMe) {
+                                     self.meItems = json[@"notifications"];
+                                     self.notifications = self.meItems;
+                                 }
+     
+                                 else if (self.selectedCategory == NotificationsCategoryFollowing) {
+                                     self.following = json[@"notifications"];
+                                     self.notifications = self.following;
+                                 }
+                                 
+                                 completionBlock(YES);
+                             }
+                                  viewForHUD:self.recommendationsTable];
 }
 
 
@@ -520,7 +373,10 @@
         
         [self animateTabPointer];
         
-        [self initGetNotificationsAPI];
+        [self initGetNotificationsApi:^(BOOL finished){
+        
+            [self.recommendationsTable reloadData];
+        }];
     }
 }
 

@@ -55,12 +55,8 @@
 	IBOutlet UIImageView *avatarView;
 	IBOutlet UILabel *usernameLabel;
 	IBOutlet UILabel *currentlyInLabel;
-	IBOutlet UIButton *photosBtn;
 	IBOutlet UIButton *guidesBtn;
-	
-	IBOutlet UIButton *settingsBtn;
-	IBOutlet UIButton *backBtn;
-	
+		
 	IBOutlet UIButton *followUserBtn;
 	IBOutlet UIButton *followingUserBtn;
 	
@@ -97,11 +93,7 @@
 @property (nonatomic, retain) IBOutlet UIImageView *avatarView;
 @property (nonatomic, retain) IBOutlet UILabel *usernameLabel;
 @property (nonatomic, retain) IBOutlet UILabel *currentlyInLabel;
-@property (nonatomic, retain) IBOutlet UIButton *photosBtn;
 @property (nonatomic, retain) IBOutlet UIButton *guidesBtn;
-
-@property (nonatomic, retain) IBOutlet UIButton *settingsBtn;
-@property (nonatomic, retain) IBOutlet UIButton *backBtn;
 
 @property (nonatomic, retain) IBOutlet UIButton *followUserBtn;
 @property (nonatomic, retain) IBOutlet UIButton *followingUserBtn;
@@ -114,8 +106,6 @@
 @property (nonatomic, retain) IBOutlet UIScrollView *contentScrollView;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil observeLogin:(BOOL)observe;
-
-- (IBAction)goBack:(id)sender;
 
 - (void)showLoadingWithStatus:(NSString *)status inView:(UIView *)view;
 - (void)hideLoading;

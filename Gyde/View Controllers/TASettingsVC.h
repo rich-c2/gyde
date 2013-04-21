@@ -31,6 +31,4 @@
 
 @property (nonatomic, retain) IBOutlet UITableView *settingsTable;
 
-- (IBAction)goBack:(id)sender;
-
 @end

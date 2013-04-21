@@ -287,7 +287,8 @@
 
 - (void)initNavBar {
 
-	self.navigationController.navigationBarHidden = YES;
+    self.title = @"GUIDES";
+	self.navigationController.navigationBarHidden = NO;
 }
 
 - (void)initMyGuidesAPI {

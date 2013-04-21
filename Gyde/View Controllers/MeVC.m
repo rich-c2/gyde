@@ -49,10 +49,10 @@
 
 @implementation MeVC
 
-@synthesize username, avatarURL, usernameLabel, photosBtn, currentlyInLabel, avatarView, lovedPlacesScrollView, placesScrollView, guidesTable, guides;
+@synthesize username, avatarURL, usernameLabel, currentlyInLabel, avatarView, lovedPlacesScrollView, placesScrollView, guidesTable, guides;
 @synthesize followUserBtn, followingUserBtn, followingBtn, followersBtn, myContentBtn, bioView;
 @synthesize findFriendsBtn, contentScrollView, guidesBtn, modePointerView, photos, lovedPhotos, lovedGuides;
-@synthesize followersLabel, followingLabel, settingsBtn, backBtn, lovedGuidesTable;
+@synthesize followersLabel, followingLabel, lovedGuidesTable;
 
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil observeLogin:(BOOL)observe {
@@ -97,8 +97,9 @@
 	
 	// The fetch size for each API call
     fetchSize = 12;
-	
-	// Setup nav bar
+    
+    // Setup nav bar
+    self.title = @"ME";
 	[self initNavBar];
 	
 	// Remove padding from bio text view
@@ -127,7 +128,6 @@
 	
     self.followingBtn = nil;
     self.followersBtn = nil;
-	self.photosBtn = nil;
 	self.usernameLabel = nil;
 	self.avatarView = nil;
 	self.myContentBtn = nil;
@@ -142,8 +142,6 @@
 	self.placesScrollView = nil;
 	self.followersLabel = nil;
 	self.followingLabel = nil;
-	self.settingsBtn = nil;
-	self.backBtn = nil;
 	self.guidesTable = nil;
     self.lovedGuidesTable = nil;
     
@@ -157,9 +155,9 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-	
-	if ([self.navigationController.viewControllers count] == 1) self.backBtn.hidden = YES;
-	
+    
+    [self initNavBar];
+		
 	if ([self.username length] > 0){
         
 		// Start fetching the Profile API
@@ -200,8 +198,6 @@
 			
 			[self.followUserBtn setHidden:YES];
 			[self.followUserBtn setHidden:YES];
-			
-			[self.settingsBtn setHidden:NO];
 		}
 		
 		else {
@@ -397,8 +393,6 @@
 		
 		[self.followingUserBtn setHidden:YES];
 		[self.followUserBtn setHidden:YES];
-		
-		[self.settingsBtn setHidden:NO];
 		
 		// Get an iVar of AppDelegate
 		// and STOP observing the AppDelegate's userLoggedIn
@@ -639,10 +633,7 @@
 		// Update followers and following buttons
 		[self.followersLabel setText:[newUserData objectForKey:@"followers"]];
 		[self.followingLabel setText:[newUserData objectForKey:@"following"]];
-		
-		// Update photos button
-		[self.photosBtn setTitle:[NSString stringWithFormat:@"My photos (%@)", [newUserData objectForKey:@"media"]] forState:UIControlStateNormal];
-		
+				
 		// Load avatar image
 		self.avatarURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [newUserData objectForKey:@"avatar"]];
 		[self initAvatarImage:self.avatarURL];
@@ -693,8 +684,7 @@
 - (void)initNavBar {
 	
 	// Hide default nav bar
-    self.title = @"ME";
-	self.navigationController.navigationBarHidden = NO;
+	[self.navigationController setNavigationBarHidden:NO animated:YES];
 }
 
 
@@ -845,7 +835,6 @@
 	
 	self.avatarURL = nil;
 	self.avatarView.image = nil;
-	[self.photosBtn setTitle:@"Photos" forState:UIControlStateNormal];
 }
 
 
@@ -898,6 +887,8 @@
 		self.placesScrollView.userInteractionEnabled = NO;
 		
 		[self fadeView:self.placesScrollView alpha:1.0 duration:ANIMATION_DURATION];
+        
+        [self initUploadsAPI];
 	}];
 }
 
@@ -958,6 +949,8 @@
 		self.lovedPlacesScrollView.userInteractionEnabled = NO;
 		
 		[self fadeView:self.lovedPlacesScrollView alpha:1.0 duration:ANIMATION_DURATION];
+        
+        [self initLovedPlacesAPI];
 	}];
 }
 
@@ -1025,7 +1018,7 @@
              [view removeFromSuperview];
     }
     
-    
+    subviewsCount = 0;
 	
 	// Set what the next tag value should be
 	NSInteger tagCounter = IMAGE_VIEW_TAG + subviewsCount;
@@ -1221,7 +1214,7 @@
 	
 	// update the page index for
 	// the next batch
-	imagesPageIndex++;
+	//imagesPageIndex++;
 	
 	// Update the image grid
 	[self updateImageGridForScrollView:self.placesScrollView withArray:self.photos];
@@ -1237,6 +1230,8 @@
 - (void)updatePhotosArray:(NSArray *)imagesArray {
     
     if (!self.managedObjectContext) self.managedObjectContext = [self appDelegate].managedObjectContext;
+    
+    if (self.photos.count > 0) [self.photos removeAllObjects];
 	
 	for (NSDictionary *image in imagesArray) {
 		
@@ -1249,12 +1244,25 @@
 - (void)updateLovedPhotosArray:(NSArray *)imagesArray {
     
     if (!self.managedObjectContext) self.managedObjectContext = [self appDelegate].managedObjectContext;
-	
+    
+    if (self.lovedPhotos.count > 0) [self.lovedPhotos removeAllObjects];
+    
+    User *currentUser = [User userWithUsername:[self appDelegate].loggedInUsername inManagedObjectContext:self.managedObjectContext];
+    	
 	for (NSDictionary *image in imagesArray) {
 		
 		Photo *photo = [Photo photoWithPhotoData:image inManagedObjectContext:self.managedObjectContext];
 		if (photo) [self.lovedPhotos addObject:photo];
+        
+        // Add image code to lovedIDs if it "isLoved"
+		NSString *isLoved = [image objectForKey:@"isLoved"];
+        
+		if ([isLoved isEqualToString:@"true"])
+			[currentUser addLovedPhotosObject:photo];
 	}
+    
+    NSError *error = nil;
+    [self.managedObjectContext save:&error];
 }
 
 
@@ -1304,7 +1312,7 @@
 	
 	// update the page index for
 	// the next batch
-	imagesPageIndex++;
+	//imagesPageIndex++;
 	
 	// Update the image grid
 	[self updateImageGridForScrollView:self.lovedPlacesScrollView withArray:self.lovedPhotos];

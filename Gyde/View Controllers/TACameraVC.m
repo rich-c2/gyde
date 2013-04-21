@@ -19,7 +19,7 @@
 #import "UIImage+fixOrientation.h"
 #import "ImageCropper.h"
 #import "UIImage+Resize.h"
-#import "SVProgressHUD.h"
+#import "MBProgressHUD.h"
 #import "NSMutableDictionary+ImageMetadata.h"
 
 @interface TACameraVC ()
@@ -99,7 +99,8 @@
 	// Start the location managing - tell it to start updating,
 	// if it's not already doing so
 	[self startLocationManager:nil];
-    
+    self.waitingToSave = NO;
+    self.photo = nil;
     [self showCameraUI:nil];
 }
 
@@ -138,27 +139,58 @@
 - (void)imageCropper:(ImageCropper *)cropper didFinishCroppingWithImage:(UIImage *)image {
     
 	self.photo = image; 
-    BOOL approved = [self newPhotoApproved:nil];
+    BOOL approved = [self newPhotoReady:NO];
     
     if (approved) {
-     
-        [self dismissModalViewControllerAnimated:NO];
-  
-#warning TO DO
-//        NSMutableDictionary *metadata = [[NSMutableDictionary alloc] init];
-//        [metadata setLocation:self.currentLocation];
         
-        ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-        [library writeImageToSavedPhotosAlbum:image.CGImage
-                                     metadata:nil
-                              completionBlock:^(NSURL *assetURL, NSError *error) {
-                                  
-                                  if (!error)
-                                      NSLog(@"SAVED TO CAMERA ROLL SUCCESSFULLY");
-                                  
-                                  NSLog(@"assetURL %@", assetURL);
-                              }];
+        [MBProgressHUD showHUDAddedTo:cropper.view animated:YES];
+     
+        [self saveToPhotosAlbum:^(BOOL success){
+            
+            [MBProgressHUD hideAllHUDsForView:cropper.view animated:YES];
+        
+            TAShareVC *shareVC = [[TAShareVC alloc] initWithNibName:@"TAShareVC" bundle:nil];
+            [shareVC setPhoto:self.photo];
+            [shareVC setImageReferenceURL:self.imageReferenceURL];
+            
+            [self.navigationController pushViewController:shareVC animated:YES];
+            
+            [self dismissModalViewControllerAnimated:NO];
+            
+            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackOpaque animated:YES];
+        }];
+        
+        
     }
+    
+    else {
+    
+        self.waitingToSave = YES;
+    }
+}
+
+
+- (void)saveToPhotosAlbum:(void(^)(BOOL success))completionBlock {
+    
+    NSMutableDictionary *metadata = [[NSMutableDictionary alloc] init];
+    [metadata setLocation:self.currentLocation];
+
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+    [library writeImageToSavedPhotosAlbum:self.photo.CGImage
+                                 metadata:metadata
+                          completionBlock:^(NSURL *assetURL, NSError *error) {
+                              
+                              if (!error) {
+                                  self.imageReferenceURL = assetURL;
+                                  NSLog(@"SAVED TO CAMERA ROLL SUCCESSFULLY");
+                                  completionBlock(YES);
+                              }
+                              else {
+                                  completionBlock(NO);
+                              }
+                              
+                              NSLog(@"assetURL %@", assetURL);
+                          }];
 }
 
 
@@ -190,7 +222,28 @@
 	[self.locationManager stopUpdating];
 	
 	NSLog(@"FOUND LOCATION:%f\%f", self.currentLocation.coordinate.latitude, self.currentLocation.coordinate.longitude);
-
+    
+    // A photo has been taken and is waiting
+    // to be saved and move onto the Share screen
+    if (self.waitingToSave) {
+        
+        [MBProgressHUD showHUDAddedTo:self.modalViewController.view animated:YES];
+        
+        [self saveToPhotosAlbum:^(BOOL success){
+            
+            [MBProgressHUD hideAllHUDsForView:self.modalViewController.view animated:YES];
+            
+            TAShareVC *shareVC = [[TAShareVC alloc] initWithNibName:@"TAShareVC" bundle:nil];
+            [shareVC setPhoto:self.photo];
+            [shareVC setImageReferenceURL:self.imageReferenceURL];
+            
+            [self.navigationController pushViewController:shareVC animated:YES];
+            
+            [self dismissModalViewControllerAnimated:NO];
+            
+            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackOpaque animated:YES];
+        }];
+    }
 }
 
 
@@ -262,18 +315,29 @@
             
             self.photo = imageToSave;
 
-            [self newPhotoApproved:nil];
-
-            [self dismissModalViewControllerAnimated:NO];
-
-            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackOpaque animated:YES];
-
+            BOOL approved = [self newPhotoReady:YES];
+            
+            if (approved) {
+            
+                TAShareVC *shareVC = [[TAShareVC alloc] initWithNibName:@"TAShareVC" bundle:nil];
+                [shareVC setPhoto:self.photo];
+                [shareVC setImageReferenceURL:self.imageReferenceURL];
+                
+                [self.navigationController pushViewController:shareVC animated:YES];
+                
+                [self dismissModalViewControllerAnimated:NO];
+                
+                [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackOpaque animated:YES];
+            }
 		}
 		
 		// If the user just took a photo using the camera
 		if (picker.sourceType == UIImagePickerControllerSourceTypeCamera) { 
 			
-            NSLog(@"INFO:%@", [info objectForKey:UIImagePickerControllerMediaMetadata]);
+            //NSLog(@"INFO:%@", [info objectForKey:UIImagePickerControllerMediaMetadata]);
+            
+            selectedPhoto = NO;
+			imageURLProcessed = YES;
             
             // Insert the overlay
             UIImage *resized = [imageToSave resizedImage:CGSizeMake(640.0, 854.0) interpolationQuality:1.0];
@@ -283,9 +347,7 @@
             
             [picker pushViewController:cropper animated:YES];
             
-			selectedPhoto = NO;
 			
-			imageURLProcessed = YES;
 		}
 	}
 }
@@ -410,114 +472,33 @@
 }
 
 
-- (BOOL)newPhotoApproved:(id)sender {
-	
-	// Check that: the image URL has been found (processed), the image URL is NOT nil
-	// AND the locationManager is NOT currently updating
-	if (imageURLProcessed && !self.locationManager.updating) {
-		
-		TAShareVC *shareVC = [[TAShareVC alloc] initWithNibName:@"TAShareVC" bundle:nil];
-		[shareVC setPhoto:self.photo];
-        [shareVC setCurrentLocation:self.currentLocation];
-        
-		if (selectedPhoto) [shareVC setImageReferenceURL:self.imageReferenceURL];
-		else [shareVC setCurrentLocation:self.currentLocation];
-		
-		[self.navigationController pushViewController:shareVC animated:YES];
-		
-		// Clear the image view, for next it needs to be used.
-		self.photo = nil;
-		[self setImageReferenceURL:nil];
-        
-        return YES;
-	}
+- (BOOL)newPhotoReady:(BOOL)fromCameraRoll {
     
-    else {
+    if (!fromCameraRoll && self.locationManager.updating) {
     
         UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Trying to locate you!" message:@"We're trying to detect your current location. Make sure location services are enabled for this app." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
         [av show];
         
         return NO;
     }
-}
-
-
-- (NSDictionary *)getGPSDictionaryForLocation:(CLLocation *)location {
+    
 	
-    NSMutableDictionary *gps = [NSMutableDictionary dictionary];
-	
-    // GPS tag version
-    [gps setObject:@"2.2.0.0" forKey:(NSString *)kCGImagePropertyGPSVersion];
-	
-    // Time and date must be provided as strings, not as an NSDate object
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"HH:mm:ss.SSSSSS"];
-	
-	// Is timezone really necessary?
-    //[formatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"UTC"]];
-    //[gps setObject:[formatter stringFromDate:location.timestamp] forKey:(NSString *)kCGImagePropertyGPSTimeStamp];
-	
-    [formatter setDateFormat:@"yyyy:MM:dd"];
-    [gps setObject:[formatter stringFromDate:location.timestamp] forKey:(NSString *)kCGImagePropertyGPSDateStamp];
-	
-    // LATITUDE
-    CGFloat latitude = location.coordinate.latitude;
-	
-    if (latitude < 0) {
-        latitude = -latitude;
-        [gps setObject:@"S" forKey:(NSString *)kCGImagePropertyGPSLatitudeRef];
-    } 
-	
-	else [gps setObject:@"N" forKey:(NSString *)kCGImagePropertyGPSLatitudeRef];
-	
-    [gps setObject:[NSNumber numberWithFloat:latitude] forKey:(NSString *)kCGImagePropertyGPSLatitude];
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-    // LONGITUDE
-    CGFloat longitude = location.coordinate.longitude;
-	
-    if (longitude < 0) {
-        longitude = -longitude;
-        [gps setObject:@"W" forKey:(NSString *)kCGImagePropertyGPSLongitudeRef];
-    } 
-	
-	else [gps setObject:@"E" forKey:(NSString *)kCGImagePropertyGPSLongitudeRef];
-	
-    [gps setObject:[NSNumber numberWithFloat:longitude] forKey:(NSString *)kCGImagePropertyGPSLongitude];
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-    // ALTITUDE
-    CGFloat altitude = location.altitude;
-	
-    if (!isnan(altitude)){
+	// Check that: the image URL has been found (processed), the image URL is NOT nil
+	// AND the locationManager is NOT currently updating
+	if (imageURLProcessed) {
 		
-        if (altitude < 0) {
-            altitude = -altitude;
-            [gps setObject:@"1" forKey:(NSString *)kCGImagePropertyGPSAltitudeRef];
-        } 
+//		TAShareVC *shareVC = [[TAShareVC alloc] initWithNibName:@"TAShareVC" bundle:nil];
+//		[shareVC setPhoto:self.photo];
+//        [shareVC setImageReferenceURL:self.imageReferenceURL];
+//		
+//		[self.navigationController pushViewController:shareVC animated:YES];
 		
-		else [gps setObject:@"0" forKey:(NSString *)kCGImagePropertyGPSAltitudeRef];
-		
-        [gps setObject:[NSNumber numberWithFloat:altitude] forKey:(NSString *)kCGImagePropertyGPSAltitude];
-    }
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-    // Speed, must be converted from m/s to km/h
-    if (location.speed >= 0){
-        [gps setObject:@"K" forKey:(NSString *)kCGImagePropertyGPSSpeedRef];
-        [gps setObject:[NSNumber numberWithFloat:location.speed*3.6] forKey:(NSString *)kCGImagePropertyGPSSpeed];
-    }
-	
-    // Heading
-    if (location.course >= 0){
-        [gps setObject:@"T" forKey:(NSString *)kCGImagePropertyGPSTrackRef];
-        [gps setObject:[NSNumber numberWithFloat:location.course] forKey:(NSString *)kCGImagePropertyGPSTrack];
-    }
-	
-    return gps;
+		// Clear the image view, for next it needs to be used.
+//		self.photo = nil;
+//		[self setImageReferenceURL:nil];
+        
+        return YES;
+	}
 }
 
 
