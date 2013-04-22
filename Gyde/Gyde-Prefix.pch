@@ -19,6 +19,7 @@
 
 #import "GlooRequestManager.h"
 #import "FacebookHelper.h"
+#import "TwitterHelper.h"
 #import "NSString+Gyde.h"
 
 #import "MeVC.h"

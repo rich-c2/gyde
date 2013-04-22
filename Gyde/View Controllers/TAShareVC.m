@@ -432,6 +432,19 @@
 
 
 - (IBAction)addToTwitterButtonTapped:(id)sender {
+    
+    BOOL twitterAvailable = [[TwitterHelper sharedHelper] isTwitterAvailable];
+    
+    if (!twitterAvailable) {
+        
+        NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                    delegate:self
+                                           cancelButtonTitle:@"OK"
+                                           otherButtonTitles:nil, nil];
+        [av show];
+        return;
+    }
 
     self.shareOnTwitter = !self.shareOnTwitter;
 }
@@ -794,59 +807,6 @@
 	[tagListVC setDelegate:self];
 	
 	[self.navigationController pushViewController:tagListVC animated:YES];
-}
-
-
-- (IBAction)shareButtonTapped:(id)sender {
-    
-	/* 
-		Retrieve the stored Twitter accounts 
-		on this phone and detect whether any 
-		of them have had access granted to this user
-		to be used 
-	*/
-    
-	ACAccountStore *accountStore = [[ACAccountStore alloc] init];
-	self.savedAccountStore = accountStore;
-	
-	// Create an account type that ensures Twitter accounts are retrieved.
-	ACAccountType *accountType = [self.savedAccountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
-	
-	self.twitterAccounts = [NSMutableArray array];
-	
-	// Request access from the user to use their Twitter accounts.
-	[self.savedAccountStore requestAccessToAccountsWithType:accountType withCompletionHandler:^(BOOL granted, NSError *error) {
-		if(granted) {
-	
-			// Get the list of Twitter accounts.
-			self.twitterAccounts = [self.savedAccountStore accountsWithAccountType:accountType];
-			
-			if ([self.twitterAccounts count] > 0) {
-                
-				[self performSelectorOnMainThread:@selector(presentTwitterAccountsSheet:) withObject:self.twitterAccounts waitUntilDone:NO];
-			}
-            
-            else {
-            
-                UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:@"You need to setup a Twitter account in your Twitter app in order to use this functionality." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-                [av show];
-            }
-		}	
-	}];
-}
-
-
-- (void)presentTwitterAccountsSheet:(NSArray *) accountsArray {
-	
-	UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose an option" delegate:self cancelButtonTitle:nil destructiveButtonTitle:@"Cancel" otherButtonTitles:nil];
-	
-	for (ACAccount *account in self.twitterAccounts) {
-		
-		NSString *accountTitle = account.accountDescription;
-		[actionSheet addButtonWithTitle:accountTitle];
-	}
-	
-	[actionSheet showFromTabBar:self.parentViewController.tabBarController.tabBar];
 }
 
 
@@ -1291,7 +1251,12 @@
             }
             else
             {
-                NSLog(@"service not available!");
+                NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+                UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                            delegate:self
+                                                   cancelButtonTitle:@"OK"
+                                                   otherButtonTitles:nil, nil];
+                [av show];
             }
         }
         

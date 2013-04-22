@@ -510,16 +510,20 @@
 
 - (UIView *)createCameraOverlay {
 
+    CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
+    CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
     
-    CGRect overlayFrame = CGRectMake(0, 0, 320, 480);
+    CGRect overlayFrame = CGRectMake(0, 0, screenWidth, screenHeight);
     UIView *overlayContainer = [[UIView alloc] initWithFrame:overlayFrame];
     [overlayContainer setBackgroundColor:[UIColor clearColor]];
     
     
+    CGFloat cropAreaHeight = 328.0;
+    
     // This is aligned to the top of the screen and
     // contains the 'photo library' button and cancel button
     CGFloat topToolbarHeight = 76;
-    CGFloat topToolbarWidth = 320;
+    CGFloat topToolbarWidth = screenWidth;
     UIView *topToolbar = [[UIView alloc] initWithFrame:CGRectMake(0, 0, topToolbarWidth, topToolbarHeight)];
     [topToolbar setBackgroundColor:[UIColor blackColor]];
     
@@ -546,9 +550,9 @@
     
     // This takes the place of where the default
     // camera tools toolbar would have been
-    CGFloat toolbarHeight = 84;
-    CGFloat toolbarWidth = 320;
-    UIView *toolbar = [[UIView alloc] initWithFrame:CGRectMake(0, (480 - toolbarHeight), toolbarWidth, toolbarHeight)];
+    CGFloat toolbarHeight = screenHeight - (topToolbarHeight + cropAreaHeight);
+    CGFloat toolbarWidth = screenWidth;
+    UIView *toolbar = [[UIView alloc] initWithFrame:CGRectMake(0, (screenHeight - toolbarHeight), toolbarWidth, toolbarHeight)];
     [toolbar setBackgroundColor:[UIColor blackColor]];
     
     

@@ -151,12 +151,11 @@
 }
 
 
-- (void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control {
+- (void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view
+        calloutAccessoryControlTapped:(UIControl *)control {
 
     MyMapAnnotation *selectedAnnotation = (MyMapAnnotation *)view.annotation;
-    
-    
-    
+        
     TAScrollVC *scrollVC = [[TAScrollVC alloc] initWithNibName:@"TAScrollVC" bundle:nil];
     [scrollVC setPhotosMode:PhotosModeSinglePhoto];
     [scrollVC setSelectedPhotoID:selectedAnnotation.locationID];
@@ -193,6 +192,7 @@
 	NSString *title = self.photo.venue.title;
 	
 	MyMapAnnotation *mapAnnotation = [[MyMapAnnotation alloc] initWithCoordinate:coordLocation title:title];
+    mapAnnotation.locationID = self.photo.photoID;
 	[self.map addAnnotation:mapAnnotation];
     
     mapLoaded = YES;

@@ -355,8 +355,8 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
     /*Region and Zoom*/
 	MKCoordinateRegion region;
 	MKCoordinateSpan span;
-	span.latitudeDelta = 0.0009;
-	span.longitudeDelta = 0.0009;
+	span.latitudeDelta = 0.009;
+	span.longitudeDelta = 0.009;
     
     CLLocationCoordinate2D coordLocation;
     coordLocation.latitude = [self.latitude doubleValue];
@@ -377,13 +377,13 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
         NSDictionary *place = [self.places objectAtIndex:i];
 		
         // Location data
-        NSDictionary *locationData = [place objectForKey:@"location"];
+        NSDictionary *locationData = [place objectForKey:@"Location"];
         
 		CLLocationCoordinate2D coordLocation;
 		coordLocation.latitude = [[locationData objectForKey:@"lat"] doubleValue];
 		coordLocation.longitude = [[locationData objectForKey:@"lng"] doubleValue];
         
-		NSString *title = [place objectForKey:@"name"];
+		NSString *title = [place objectForKey:@"Name"];
 		if ([title length] == 0) title = @"[untitled]";
 		
 		MyMapAnnotation *mapAnnotation = [[MyMapAnnotation alloc] initWithCoordinate:coordLocation title:title];

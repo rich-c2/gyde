@@ -136,6 +136,7 @@
 		9BC8E96C172193860067EBE7 /* footer-tweet-button@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BC8E95C172193860067EBE7 /* footer-tweet-button@2x.png */; };
 		9BCB5E7E17182F8E00403EC9 /* GydeScrollViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BCB5E7D17182F8E00403EC9 /* GydeScrollViewController.m */; };
 		9BCB5E8A17185F6A00403EC9 /* NSManagedObject+Gyde.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BCB5E8917185F6900403EC9 /* NSManagedObject+Gyde.m */; };
+		9BCB6D84172563F500CA0764 /* TwitterHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BCB6D83172563F500CA0764 /* TwitterHelper.m */; };
 		9BCBE99D171A5AC600181627 /* submit-facebook-button.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BCBE99B171A5AC600181627 /* submit-facebook-button.png */; };
 		9BCBE99E171A5AC600181627 /* submit-facebook-button@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BCBE99C171A5AC600181627 /* submit-facebook-button@2x.png */; };
 		9BCBE9A2171A5B3300181627 /* submit-recommend-button.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BCBE9A0171A5B3300181627 /* submit-recommend-button.png */; };
@@ -823,6 +824,8 @@
 		9BCB5E8017185BCF00403EC9 /* Gyde 3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Gyde 3.xcdatamodel"; sourceTree = "<group>"; };
 		9BCB5E8817185F6900403EC9 /* NSManagedObject+Gyde.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSManagedObject+Gyde.h"; sourceTree = "<group>"; };
 		9BCB5E8917185F6900403EC9 /* NSManagedObject+Gyde.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSManagedObject+Gyde.m"; sourceTree = "<group>"; };
+		9BCB6D82172563F400CA0764 /* TwitterHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TwitterHelper.h; sourceTree = "<group>"; };
+		9BCB6D83172563F500CA0764 /* TwitterHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TwitterHelper.m; sourceTree = "<group>"; };
 		9BCBE99B171A5AC600181627 /* submit-facebook-button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "submit-facebook-button.png"; sourceTree = "<group>"; };
 		9BCBE99C171A5AC600181627 /* submit-facebook-button@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "submit-facebook-button@2x.png"; sourceTree = "<group>"; };
 		9BCBE9A0171A5B3300181627 /* submit-recommend-button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "submit-recommend-button.png"; sourceTree = "<group>"; };
@@ -2247,6 +2250,8 @@
 				9BFB098717114A3C008B3778 /* FacebookHelper.m */,
 				9B0E828A1712ED3F0029F88F /* GeocodingHelper.h */,
 				9B0E828B1712ED3F0029F88F /* GeocodingHelper.m */,
+				9BCB6D82172563F400CA0764 /* TwitterHelper.h */,
+				9BCB6D83172563F500CA0764 /* TwitterHelper.m */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -3109,6 +3114,7 @@
 				9BE4B529171D6225006CA748 /* NSMutableDictionary+ImageMetadata.m in Sources */,
 				9B1C2E0217222950003B0887 /* UIScrollView+SVInfiniteScrolling.m in Sources */,
 				9B1C2E0317222950003B0887 /* UIScrollView+SVPullToRefresh.m in Sources */,
+				9BCB6D84172563F500CA0764 /* TwitterHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

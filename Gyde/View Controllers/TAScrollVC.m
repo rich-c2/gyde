@@ -231,7 +231,12 @@
             }
             else
             {
-                NSLog(@"service not available!");
+                NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+                UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                            delegate:self
+                                                   cancelButtonTitle:@"OK"
+                                                   otherButtonTitles:nil, nil];
+                [av show];
             }
         }
         
@@ -1331,23 +1336,34 @@
 		// Create a dictionary from the JSON string
 		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
 		NSDictionary *results = [jsonString objectFromJSONString];
+        
+        if ([results[@"result"] isEqualToString:@"ok"]) {
+        
+            NSDictionary *photoData = [results objectForKey:@"media"];
+            
+            // Take the data from the API, convert it
+            // to Photos objects and store them in self.photos array
+            [self updatePhotosArray:[NSArray arrayWithObject:photoData]];
+            
+            // Request is done. Now update the UI and
+            // the relevant iVars
+            [self mediaRequestFinished];
+        }
 		
-		NSDictionary *photoData = [results objectForKey:@"media"];
-		
-		// Take the data from the API, convert it
-		// to Photos objects and store them in
-		// self.photos array
-		[self updatePhotosArray:[NSArray arrayWithObject:photoData]];
-		
-		// Request is done. Now update the UI and
-		// the relevant iVars
-		[self mediaRequestFinished];
+        else {
+        
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Place error"
+                                                         message:@"There was an error retrieving that place. Please check your network settings."
+                                                        delegate:self
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
+        }
     }
 	
 	// hide loading animation
 	[self hideLoading];
     
-//    [mediaFetcher release];
     mediaFetcher = nil;
 }
 

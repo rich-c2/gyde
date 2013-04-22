@@ -586,8 +586,11 @@
     [self.timeElapsedBtn setBackgroundColor:[UIColor clearColor]];
     [self.timeElapsedBtn setTitle:elapsedTimeString forState:UIControlStateNormal];
     
-    self.descriptionView.text = @"There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour";
-	
+    if ([[self.guideData allKeys] containsObject:@"description"]) {
+        
+        NSString *desc = [self.guideData objectForKey:@"description"];
+        self.descriptionView.text = desc;
+	}
 }
 
 - (IBAction)tweetButtonTapped:(id)sender {
@@ -610,7 +613,12 @@
             }
             else
             {
-                NSLog(@"service not available!");
+                NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+                UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                            delegate:self
+                                                   cancelButtonTitle:@"OK"
+                                                   otherButtonTitles:nil, nil];
+                [av show];
             }
         }
         
@@ -985,7 +993,7 @@
         
         NSString *name = [self.guideData objectForKey:@"title"];
         NSString *message = @"Gyde for iOS.";
-        NSString *link = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [self.guideData objectForKey:@"urlpath"] ];
+        NSString *link = [NSString stringWithFormat:@"%@", [self.guideData objectForKey:@"urlpath"]];
         NSString *thumbURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [self.guideData objectForKey:@"thumb"]];
         NSString *description = @"There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form.";
         

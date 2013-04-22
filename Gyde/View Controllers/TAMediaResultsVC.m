@@ -115,6 +115,8 @@
 
 	[super viewWillAppear:animated];
     
+    self.navigationController.navigationBarHidden = YES;
+    
     if (self.resultsMode == ResultsModeGuides && !guidesLoaded) {
         
         [self initFindGuidesAPI];

@@ -138,6 +138,19 @@
 
 - (IBAction)addToTwitterButtonTapped:(id)sender {
     
+    BOOL twitterAvailable = [[TwitterHelper sharedHelper] isTwitterAvailable];
+    
+    if (!twitterAvailable) {
+    
+        NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                    delegate:self
+                                           cancelButtonTitle:@"OK"
+                                           otherButtonTitles:nil, nil];
+        [av show];
+        return;
+    }
+    
     self.shareOnTwitter = !self.shareOnTwitter;
 }
 
@@ -202,6 +215,7 @@
                                      
                                      if (self.shareOnTwitter) {
                                          
+#warning TO DO: adjust urlPath so it doesn't need to have prefix attached
                                          NSString *initialText = [NSString stringWithFormat:@"%@ %@%@", json[@"guide"][@"title"], FRONT_END_ADDRESS, json[@"guide"][@"urlpath"]];
                                          [self sharePhotoOnTwitterWithText:initialText];
                                      }
@@ -213,6 +227,7 @@
                                          NSDictionary *guideDict = json[@"guide"];
                                          
                                          NSString *thumbURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, guideDict[@"thumb"]];
+#warning TO DO: adjust urlPath so it doesn't need to have prefix attached
                                          NSString *guideUrl = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, guideDict[@"urlpath"]];
                                          NSString *description = guideDict[@"description"];
                                          NSString *name = guideDict[@"title"];
@@ -313,6 +328,8 @@
 
 - (void)sharePhotoOnTwitterWithText:(NSString *)initialText {
     
+    NSString *tweetText = [NSString stringWithFormat:@"Via Gyde for iOS:%@", initialText];
+    
     //Check for Social Framework availability (iOS 6)
     if(NSClassFromString(@"SLComposeViewController") != nil){
         
@@ -322,13 +339,18 @@
             {
                 NSLog(@"service available");
                 SLComposeViewController *composeViewController = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
-                [composeViewController setInitialText:initialText];
+                [composeViewController setInitialText:tweetText];
                 //[composeViewController addImage:self.photoView.image];
                 [self presentViewController:composeViewController animated:YES completion:nil];
             }
             else
             {
-                NSLog(@"service not available!");
+                NSString *message = @"You have no Twitter accounts setup on your phone. Please add one via your Settings app and try again.";
+                UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No accounts" message:message
+                                                            delegate:self
+                                                   cancelButtonTitle:@"OK"
+                                                   otherButtonTitles:nil, nil];
+                [av show];
             }
         }
         
@@ -349,7 +371,7 @@
         if ([TWTweetComposeViewController canSendTweet]) {
             TWTweetComposeViewController *tweetVC = [[TWTweetComposeViewController alloc] init];
             //[tweetVC addImage:self.photoView.image];
-            [tweetVC setInitialText:initialText];
+            [tweetVC setInitialText:tweetText];
             [self presentModalViewController:tweetVC animated:YES];
         }
         
