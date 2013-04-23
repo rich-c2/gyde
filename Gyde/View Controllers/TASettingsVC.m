@@ -17,7 +17,6 @@
 #import "TAScrollVC.h"
 #import "TAGuidesListVC.h"
 #import "SettingsTableCell.h"
-#import "City.h"
 
 #define TABLE_HEADER_HEIGHT 30.0
 #define TABLE_FOOTER_HEIGHT 2.0
@@ -39,7 +38,7 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 	
     if (self) {
 		
-       [self setHidesBottomBarWhenPushed:NO];
+       //[self setHidesBottomBarWhenPushed:NO];
     }
     return self;
 }
@@ -49,27 +48,27 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
     [super viewDidLoad];
 	
 	[self initNavBar];
-	
-	NSArray *contentObjects = [NSArray arrayWithObjects:@"Loved photos", @"Followed guides", nil];
-    NSArray *contentIcons = [NSArray arrayWithObjects:@"settings-icon-loved-photos.png", @"settings-icon-map-marker.png", nil];
     
-    NSArray *friendsObjects = [NSArray arrayWithObjects:@"Search users", @"Find via contacts", @"Find via Twitter", @"Invite via Twitter", nil];
-    NSArray *friendsIcons = [NSArray arrayWithObjects:@"settings-icon-map-marker.png", @"settings-icon-map-marker.png", @"settings-icon-twitter.png", @"settings-icon-twitter.png", nil];
+    // , @"Find via Twitter", @"Invite via Twitter"
+    // , @"settings-icon-twitter.png", @"settings-icon-twitter.png"
+	    
+    NSArray *friendsObjects = [NSArray arrayWithObjects:@"Search users", @"Find via contacts", nil];
+    NSArray *friendsIcons = [NSArray arrayWithObjects:@"settings-icon-map-marker.png", @"settings-icon-map-marker.png", nil];
     
 	NSArray *accountObjects = [NSArray arrayWithObjects:@"Edit profile", nil];
     NSArray *accountIcons = [NSArray arrayWithObjects:@"settings-icon-map-marker.png", nil];
     
-	NSArray *otherObjects = [NSArray arrayWithObjects:@"About", @"Contact support", nil];
-    NSArray *otherIcons = [NSArray arrayWithObjects:@"settings-icon-map-marker.png", @"settings-icon-contact.png", nil];
+	NSArray *otherObjects = [NSArray arrayWithObjects:@"Contact support", nil];
+    NSArray *otherIcons = [NSArray arrayWithObjects:@"settings-icon-contact.png", nil];
     
 	NSArray *cityObjects = [NSArray arrayWithObjects:[self getUsersDefaultCity], nil];
 	NSArray *cityIcons = [NSArray arrayWithObjects:@"settings-icon-map-marker.png", nil];
     
 	
-    NSArray *tmpKeys = [[NSArray alloc] initWithObjects:@"My content", @"Friends", @"Account", @"Default City", @"Other", nil];
+    NSArray *tmpKeys = [[NSArray alloc] initWithObjects:@"Friends", @"Account", @"Default City", @"Other", nil];
 	self.keys = tmpKeys;
     
-    NSArray *iconObjects = [[NSArray alloc] initWithObjects:contentIcons, friendsIcons, accountIcons, cityIcons, otherIcons, nil];
+    NSArray *iconObjects = [[NSArray alloc] initWithObjects:friendsIcons, accountIcons, cityIcons, otherIcons, nil];
     
     NSMutableDictionary *tempIcons = [[NSMutableDictionary alloc] initWithObjects:iconObjects forKeys:self.keys];
     
@@ -79,7 +78,7 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
     // Create the master menu dictionary
     // which contains the arrays containing the relevant string objects
     // for each section of the menu table
-	NSArray *objects = [NSArray arrayWithObjects:contentObjects, friendsObjects, accountObjects, cityObjects, otherObjects, nil];
+	NSArray *objects = [NSArray arrayWithObjects:friendsObjects, accountObjects, cityObjects, otherObjects, nil];
     NSMutableDictionary *tmpMenuDict = [[NSMutableDictionary alloc] initWithObjects:objects forKeys:self.keys];
     
 	self.menuDictionary = tmpMenuDict;
@@ -114,6 +113,8 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 - (void)viewWillAppear:(BOOL)animated {
 
     [super viewWillAppear:animated];
+    
+    self.navigationController.navigationBarHidden = NO;
     
     [self.settingsTable deselectRowAtIndexPath:[self.settingsTable indexPathForSelectedRow] animated:YES];
     
@@ -376,7 +377,7 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 		picker.mailComposeDelegate = self;
 		
 		// SUBJECT
-		[picker setSubject:@"RE: Tourism App"];
+		[picker setSubject:@"RE: Gyde for iOS"];
 		
 		// TO ADDRESS...
 		NSArray *recipients = [[NSArray alloc] initWithObjects:@"hello@c2.net.au", nil];
@@ -519,8 +520,7 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 
 - (void)initNavBar {
 	
-	self.title = @"SETTINGS";
-	self.navigationController.navigationBarHidden = NO;
+	self.navigationItem.title = @"SETTINGS";
 	
     UIButton *logoutBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [logoutBtn setImage:[UIImage imageNamed:@"nav-bar-logout-button.png"] forState:UIControlStateNormal];

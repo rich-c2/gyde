@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B0DB09D17269CED000502CC /* GydeTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B0DB09C17269CED000502CC /* GydeTabBarController.m */; };
 		9B0E828C1712ED3F0029F88F /* GeocodingHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B0E828B1712ED3F0029F88F /* GeocodingHelper.m */; };
 		9B0E82941712F2CE0029F88F /* GlooRequestManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B0E82931712F2CE0029F88F /* GlooRequestManager.m */; };
 		9B0E82BB1712FBA60029F88F /* NSObject+SBJson.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B0E82A31712FBA60029F88F /* NSObject+SBJson.m */; };
@@ -629,6 +630,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9B0DB09B17269CED000502CC /* GydeTabBarController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GydeTabBarController.h; sourceTree = "<group>"; };
+		9B0DB09C17269CED000502CC /* GydeTabBarController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GydeTabBarController.m; sourceTree = "<group>"; };
 		9B0E828A1712ED3F0029F88F /* GeocodingHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeocodingHelper.h; sourceTree = "<group>"; };
 		9B0E828B1712ED3F0029F88F /* GeocodingHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeocodingHelper.m; sourceTree = "<group>"; };
 		9B0E82921712F2CE0029F88F /* GlooRequestManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GlooRequestManager.h; sourceTree = "<group>"; };
@@ -1546,6 +1549,8 @@
 				9B0ED4C416FED5C500F0177C /* AppDelegate.m */,
 				9B0ED4CC16FED5C500F0177C /* Gyde.xcdatamodeld */,
 				9B0ED4BB16FED5C500F0177C /* Supporting Files */,
+				9B0DB09B17269CED000502CC /* GydeTabBarController.h */,
+				9B0DB09C17269CED000502CC /* GydeTabBarController.m */,
 			);
 			path = Gyde;
 			sourceTree = "<group>";
@@ -3115,6 +3120,7 @@
 				9B1C2E0217222950003B0887 /* UIScrollView+SVInfiniteScrolling.m in Sources */,
 				9B1C2E0317222950003B0887 /* UIScrollView+SVPullToRefresh.m in Sources */,
 				9BCB6D84172563F500CA0764 /* TwitterHelper.m in Sources */,
+				9B0DB09D17269CED000502CC /* GydeTabBarController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3213,8 +3219,8 @@
 					"-lsqlite3.0",
 					"-ObjC",
 				);
-				PROVISIONING_PROFILE = "38AAC92C-4BAE-459C-8C95-4F3A91290A98";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "38AAC92C-4BAE-459C-8C95-4F3A91290A98";
+				PROVISIONING_PROFILE = "EBD56B3C-E092-4FA1-98C9-41C8C229B867";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "EBD56B3C-E092-4FA1-98C9-41C8C229B867";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -3261,7 +3267,7 @@
 					"\"$(SRCROOT)/Gyde/Flurry\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "38AAC92C-4BAE-459C-8C95-4F3A91290A98";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "EBD56B3C-E092-4FA1-98C9-41C8C229B867";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

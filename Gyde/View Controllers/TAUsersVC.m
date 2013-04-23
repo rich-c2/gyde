@@ -644,38 +644,119 @@
     usersFetcher = nil;
 }
 
-#warning TO DO
-- (void)initAddressBook {
+-(BOOL)isABAddressBookCreateWithOptionsAvailable {
+    return &ABAddressBookCreateWithOptions != NULL;
+}
 
-//	ABAddressBookRef ab =ABAddressBookCreate();
-//	NSArray *contacts = (__bridge NSArray *)ABAddressBookCopyArrayOfAllPeople(ab);
-//	
-//	NSMutableArray *emails = [[NSMutableArray alloc] init];
-//	
-//	for (int i = 0; i < [contacts count]; i++) {
-//	
-//		ABRecordRef *person = (ABRecordRef *)[contacts objectAtIndex:i];
-//		
-//		ABMultiValueRef emailProperty = (ABMultiValueRef)ABRecordCopyValue(person, kABPersonEmailProperty);
-//		
-//		// convert it to an array
-//		CFArrayRef allEmails = ABMultiValueCopyArrayOfAllValues(emailProperty);
-//		
-//		CFRelease(emailProperty);
-//		
-//		// add these emails to our initial array
-//		[emails addObjectsFromArray:(__bridge NSArray *)allEmails];
-//		
-//		//CFRelease(allEmails);
-//	}
-//	
-//	CFRelease((__bridge CFTypeRef)(contacts));
-//	
-//	NSString *emailsString = [emails componentsJoinedByString:@","];
-//	
-//	[self initContactsFriendsAPI:emailsString];
-//	
-//	CFRelease(ab);
+- (void)initAddressBook {
+    
+    
+    ABAddressBookRef addressBook;
+    if ([self isABAddressBookCreateWithOptionsAvailable]) {
+        
+        CFErrorRef error = nil;
+        addressBook = ABAddressBookCreateWithOptions(NULL,&error);
+        ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error) {
+            
+            // callback can occur in background, address book must be accessed on thread it was created on
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (error) {                    
+                    
+                    UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Contacts error"
+                                                                 message:@"There was an error access your address book contacts. Please check your device's Settings." delegate:self
+                                                       cancelButtonTitle:@"OK"
+                                                       otherButtonTitles:nil, nil];
+                    [av show];
+                } else if (!granted) {
+                    
+                    UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Contacts error - permission denied"
+                                                                 message:@"Please grant permission to access your address book via your device's settings." delegate:self
+                                                       cancelButtonTitle:@"OK"
+                                                       otherButtonTitles:nil, nil];
+                    [av show];
+                } else {
+                    // access granted
+                    NSArray *contacts = (__bridge NSArray *)ABAddressBookCopyArrayOfAllPeople(addressBook);
+                    
+                    NSMutableArray *emails = [[NSMutableArray alloc] init];
+                    
+                    for (int i = 0; i < [contacts count]; i++) {
+                        
+                        ABRecordRef person = (__bridge ABRecordRef)contacts[i];
+                        
+                        ABMultiValueRef emailProperty = (ABMultiValueRef)ABRecordCopyValue(person, kABPersonEmailProperty);
+                        
+                        // convert it to an array
+                        CFArrayRef allEmails = ABMultiValueCopyArrayOfAllValues(emailProperty);
+                        
+                        CFRelease(emailProperty);
+                        
+                        // add these emails to our initial array
+                        [emails addObjectsFromArray:(__bridge NSArray *)allEmails];
+                    }
+                    
+                    CFRelease((__bridge CFTypeRef)(contacts));
+                    
+                    if (emails.count > 0) {
+                        
+                        NSString *emailsString = [emails componentsJoinedByString:@","];
+                        [self initContactsFriendsAPI:emailsString];
+                    }
+                    
+                    else {
+                    
+                        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No contacts found"
+                                                                     message:@"We could not find any of your contacts? Please check your Contacts app." delegate:self
+                                                           cancelButtonTitle:@"OK"
+                                                           otherButtonTitles:nil, nil];
+                        [av show];
+                    }
+                }
+            });
+        });
+    } else {
+        // iOS 4/5
+        addressBook = ABAddressBookCreate();
+        
+        NSArray *contacts = (__bridge NSArray *)ABAddressBookCopyArrayOfAllPeople(addressBook);
+        
+        NSMutableArray *emails = [[NSMutableArray alloc] init];
+        
+        for (int i = 0; i < [contacts count]; i++) {
+            
+            ABRecordRef person = (__bridge ABRecordRef)contacts[i];
+            
+            ABMultiValueRef emailProperty = (ABMultiValueRef)ABRecordCopyValue(person, kABPersonEmailProperty);
+            
+            // convert it to an array
+            CFArrayRef allEmails = ABMultiValueCopyArrayOfAllValues(emailProperty);
+            
+            CFRelease(emailProperty);
+            
+            // add these emails to our initial array
+            [emails addObjectsFromArray:(__bridge NSArray *)allEmails];
+        }
+        
+        CFRelease((__bridge CFTypeRef)(contacts));
+        
+        if (emails.count > 0) {
+            
+            NSString *emailsString = [emails componentsJoinedByString:@","];
+            [self initContactsFriendsAPI:emailsString];
+        }
+        
+        else {
+            
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"No contacts found"
+                                                         message:@"We could not find any of your contacts? Please check your Contacts app." delegate:self
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
+        }
+        
+        CFRelease(addressBook);
+    }
+
 }
 
 

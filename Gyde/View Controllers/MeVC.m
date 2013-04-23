@@ -16,7 +16,6 @@
 #import "TAGuidesListVC.h"
 #import "ImageManager.h"
 #import "TALoginVC.h"
-#import "TAMyContentVC.h"
 #import "TASettingsVC.h"
 #import "TASimpleListVC.h"
 #import "TAFriendsVC.h"
@@ -50,8 +49,8 @@
 @implementation MeVC
 
 @synthesize username, avatarURL, usernameLabel, currentlyInLabel, avatarView, lovedPlacesScrollView, placesScrollView, guidesTable, guides;
-@synthesize followUserBtn, followingUserBtn, followingBtn, followersBtn, myContentBtn, bioView;
-@synthesize findFriendsBtn, contentScrollView, guidesBtn, modePointerView, photos, lovedPhotos, lovedGuides;
+@synthesize followUserBtn, followingUserBtn, followingBtn, followersBtn, bioView;
+@synthesize contentScrollView, guidesBtn, modePointerView, photos, lovedPhotos, lovedGuides;
 @synthesize followersLabel, followingLabel, lovedGuidesTable;
 
 
@@ -64,14 +63,14 @@
 		// Listen for when the user has logged-in
 		if (observe) {
 			
-			CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-			
-			tabItem.customHighlightedImage = [UIImage imageNamed:@"account_tab_button-on.png"];
-			tabItem.customStdImage = [UIImage imageNamed:@"account_tab_button.png"];
-			tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-			
-			self.tabBarItem = tabItem;
-			tabItem = nil;
+//			CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
+//			
+//			tabItem.customHighlightedImage = [UIImage imageNamed:@"account_tab_button-on.png"];
+//			tabItem.customStdImage = [UIImage imageNamed:@"account_tab_button.png"];
+//			tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
+//			
+//			self.tabBarItem = tabItem;
+//			tabItem = nil;
 			
 			[self initLoginObserver];
 		}
@@ -99,7 +98,7 @@
     fetchSize = 12;
     
     // Setup nav bar
-    self.title = @"ME";
+    self.navigationItem.title = @"ME";
 	[self initNavBar];
 	
 	// Remove padding from bio text view
@@ -130,8 +129,6 @@
     self.followersBtn = nil;
 	self.usernameLabel = nil;
 	self.avatarView = nil;
-	self.myContentBtn = nil;
-    self.findFriendsBtn = nil;
 	
 	self.contentScrollView = nil;
 	
@@ -159,53 +156,32 @@
     [self initNavBar];
 		
 	if ([self.username length] > 0){
-        
-		// Start fetching the Profile API
-		// if we're not already loading it.
-		if (!loading && !profileLoaded) {
 						
-			[self loadUserDetails];
-		}
-		
-		// Init the "Uploads" API
-		if (!uploadsLoaded && self.placesScrollView.alpha > 0.0) {
-                        
-			[self initUploadsAPI];
-            [self initLovedPlacesAPI];
-		}
-		
-		else if (!guidesLoaded && self.guidesTable.alpha > 0.0) {
-			
-			[self initMyGuidesAPI];
-            [self initLovedGuidesAPI];
-		}
-		
-		// IF we're not already loading
-		// "isFollowing" API then start it
-		if (!loadingIsFollowing && !isFollowingLoaded) {
-			
-			// IF the loggedIn User is look at his/her own profile
-			// then disable the follow/unfollow buttons
-			if (![self.username isEqualToString:[self appDelegate].loggedInUsername]) {
+        // Refresh user details
+        [self loadUserDetails];
+        
+        switch (self.contentMode) {
+            case MeContentModeMyPlaces:
+                [self initUploadsAPI];
+                [self initLovedPlacesAPI];
+                break;
                 
-				[self detectFollowStatus];
-			}
-		}
-		
-		// FOR NOW: Add an "save" button to the top-right of the nav bar
-		// if this is a guide NOT created by the logged-in user
-		if ([self.username isEqualToString:[self appDelegate].loggedInUsername]) {
-			
-			[self.followUserBtn setHidden:YES];
-			[self.followUserBtn setHidden:YES];
-		}
-		
-		else {
-			
-			// HIDE MY CONTENT BUTTON
-			self.myContentBtn.hidden = YES;
-			self.findFriendsBtn.hidden = YES;
-		}
+            case MeContentModeMyGuides:
+                [self initMyGuidesAPI];
+                [self initLovedGuidesAPI];
+                break;
+                
+            case MeContentModeLovedPlaces:
+                [self initLovedPlacesAPI];
+                break;
+                
+            case MeContentModeLovedGuides:
+                [self initLovedGuidesAPI];
+                break;
+                
+            default:
+                break;
+        }
 	}
     
     // Deselect any selected table rows
@@ -793,15 +769,6 @@
 }
 
 
-- (IBAction)myContentButtonTapped:(id)sender {
-	
-	// Push the following VC onto the stack
-	TAMyContentVC *myContentVC = [[TAMyContentVC alloc] initWithNibName:@"TAMyContentVC" bundle:nil];
-	[myContentVC setUsername:self.username];
-	[self.navigationController pushViewController:myContentVC animated:YES];
-}
-
-
 - (IBAction)findFriendsButtonTapped:(id)sender {
 	
 	// Push the following VC onto the stack
@@ -826,8 +793,6 @@
     
 	self.username = nil;
 	self.currentlyInLabel.text = nil;
-	self.myContentBtn.hidden = YES;
-	self.findFriendsBtn.hidden = YES;
 	[self.followersBtn setTitle:@"0 Followers" forState:UIControlStateNormal];
 	[self.followingBtn setTitle:@"0 Following" forState:UIControlStateNormal];
 	self.followingUserBtn.hidden = YES;
@@ -840,11 +805,15 @@
 
 - (IBAction)placesButtonTapped:(id)sender {
     
+    self.contentMode = MeContentModeMyPlaces;
+    
 	[self animateToPlaces];
 }
 
 
 - (IBAction)guidesButtonTapped:(id)sender {
+    
+    self.contentMode = MeContentModeMyGuides;
 	
 	[self animateToGuides];
 }
@@ -852,11 +821,15 @@
 
 - (IBAction)lovedPlacesButtonTapped:(id)sender {
     
+    self.contentMode = MeContentModeLovedPlaces;
+    
 	[self animateToLovedPlaces];
 }
 
 
 - (IBAction)lovedGuidesButtonTapped:(id)sender {
+    
+    self.contentMode = MeContentModeLovedGuides;
 	
 	[self animateToLovedGuides];
 }

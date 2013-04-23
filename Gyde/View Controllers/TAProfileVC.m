@@ -93,7 +93,7 @@
     
     self.followUserBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
-    [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
+    [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateHighlighted];
     [self.followUserBtn setTitle:@"FOLLOW" forState:UIControlStateNormal];
     [self.followUserBtn setFrame:CGRectMake(0, 0, 69, 27)];
     [self.followUserBtn.titleLabel setFont:[UIFont systemFontOfSize:10]];
@@ -446,9 +446,21 @@
 
 
 - (IBAction)followUserButtonTapped:(id)sender {
+    
+    self.following = !self.following;
 
-	// Initiate Follow API
-	[self initFollowAPI];
+	if (self.following){
+    
+        [self.followUserBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
+        [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
+        [self initFollowAPI];
+    }
+    else {
+    
+        [self.followUserBtn setTitle:@"FOLLOW" forState:UIControlStateNormal];
+        [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
+        [self initUnfollowAPI];   
+    }
 }
 
 
@@ -520,7 +532,7 @@
 	if (success) {
 		
 		[self.followUserBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
-		[self.followUserBtn setImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
+		[self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
 	}
 	
 	followFetcher = nil;
@@ -738,11 +750,14 @@
 	// If this use is being followed by the logged-in user
 	// then show the followingUser button. And vice-versa.
 	if ([isFollowing isEqualToString:@"true"]) {
+        
+        self.following = YES;
 		[self.followUserBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
         [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
 	}
 	else {
     
+        self.following = NO;
         [self.followUserBtn setTitle:@"FOLLOW" forState:UIControlStateNormal];
 		[self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
     }

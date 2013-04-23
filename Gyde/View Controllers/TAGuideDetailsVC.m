@@ -966,23 +966,23 @@
      completionHandler:^(FBRequestConnection *connection,
                          id result,
                          NSError *error) {
-         NSString *alertText;
-         if (error) {
-             alertText = [NSString stringWithFormat:
-                          @"error: domain = %@, code = %d",
-                          error.domain, error.code];
-         } else {
-             alertText = [NSString stringWithFormat:
-                          @"Posted action, id: %@",
-                          [result objectForKey:@"id"]];
-         }
+//         NSString *alertText;
+//         if (error) {
+//             alertText = [NSString stringWithFormat:
+//                          @"error: domain = %@, code = %d",
+//                          error.domain, error.code];
+//         } else {
+//             alertText = [NSString stringWithFormat:
+//                          @"Posted action, id: %@",
+//                          [result objectForKey:@"id"]];
+//         }
          // Show the result in an alert
-         [[[UIAlertView alloc] initWithTitle:@"Result"
-                                     message:alertText
-                                    delegate:self
-                           cancelButtonTitle:@"OK!"
-                           otherButtonTitles:nil]
-          show];
+//         [[[UIAlertView alloc] initWithTitle:@"Result"
+//                                     message:alertText
+//                                    delegate:self
+//                           cancelButtonTitle:@"OK!"
+//                           otherButtonTitles:nil]
+//          show];
      }];
 }
 
@@ -1146,14 +1146,10 @@
     picker.mailComposeDelegate = self;
     
     // SUBJECT
-    [picker setSubject:@"RE: Tourism App"];
-    
-    // TO ADDRESS...
-    NSArray *recipients = [[NSArray alloc] initWithObjects:@"hello@c2.net.au", nil];
-    [picker setToRecipients:recipients];
+    [picker setSubject:@"RE: Gyde"];
     
     // BODY TEXT
-    NSString *bodyContent = @"I was using the Tourism App...";
+    NSString *bodyContent = [NSString stringWithFormat:@"I was using the Gyde for iOS and thought you should check out this guide\n %@", self.guideData[@"urlpath"]];
     NSString *emailBody = [NSString stringWithFormat:@"%@\n\n", bodyContent];
     [picker setMessageBody:emailBody isHTML:NO];
     

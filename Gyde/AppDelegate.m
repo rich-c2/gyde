@@ -104,24 +104,24 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 	
 	
 	// Create a tabbar controller and an array to contain the view controllers
-    CGFloat screenWidth = 320.0;
-    CGFloat screenHeight = 480.0;
-    
-    // Adding custom tab bar imagery
-    UIImageView *bgImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tab-bar-bg.png"]];
-	bgImageView.frame = CGRectMake(0, 0, screenWidth, 49);
-	
-	
-	// Detect what iOS the iPad is running and insert the tab bar background
-	// image at the appropriate index. If it's OS5 then the image has to be
-	// placed at index 1.
-	if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5)
-		[[self.tabBarController tabBar] insertSubview:bgImageView atIndex:0];
-	
-	else [[self.tabBarController tabBar] insertSubview:bgImageView atIndex:1];
-	
-	
-	self.tabBarController.tabBar.frame = CGRectMake(0, (screenHeight - 49), screenWidth, 49);
+//    CGFloat screenWidth = 320.0;
+//    CGFloat screenHeight = 480.0;
+//    
+//    // Adding custom tab bar imagery
+//    UIImageView *bgImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tab-bar-bg.png"]];
+//	bgImageView.frame = CGRectMake(0, 0, screenWidth, 49);
+//	
+//	
+//	// Detect what iOS the iPad is running and insert the tab bar background
+//	// image at the appropriate index. If it's OS5 then the image has to be
+//	// placed at index 1.
+//	if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5)
+//		[[self.tabBarController tabBar] insertSubview:bgImageView atIndex:0];
+//	
+//	else [[self.tabBarController tabBar] insertSubview:bgImageView atIndex:1];
+//	
+//	
+//	self.tabBarController.tabBar.frame = CGRectMake(0, (screenHeight - 49), screenWidth, 49);
 	
 	
 	NSMutableArray *localViewControllersArray = [[NSMutableArray alloc] initWithCapacity:5];
@@ -460,12 +460,12 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 	[[UINavigationBar appearance] setTitleTextAttributes:navBarTextAttributes];
         
     [[UIBarButtonItem appearance] setBackgroundImage:[[UIImage imageNamed:@"navBarButton.png"]
-                                                      resizableImageWithCapInsets:UIEdgeInsetsMake(0, 5, 0, 5)]
+                                                      resizableImageWithCapInsets:UIEdgeInsetsMake(12, 4, 12, 4)]
                                             forState:UIControlStateNormal
                                           barMetrics:UIBarMetricsDefault];
     
     [[UIBarButtonItem appearance] setBackButtonBackgroundImage:[[UIImage imageNamed:@"navBarBack.png"]
-                                                                resizableImageWithCapInsets:UIEdgeInsetsMake(0, 11, 0, 5)]
+                                                                resizableImageWithCapInsets:UIEdgeInsetsMake(4, 11, 0, 5)]
                                                       forState:UIControlStateNormal
                                                     barMetrics:UIBarMetricsDefault];
 }

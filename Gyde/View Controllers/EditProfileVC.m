@@ -117,6 +117,8 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 - (void)viewWillAppear:(BOOL)animated {
 
 	[super viewWillAppear:animated];
+    
+    self.navigationController.navigationBarHidden = YES;
 	
 	if (!loading && !profileLoaded) {
 		

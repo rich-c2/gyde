@@ -95,6 +95,8 @@
 @property (nonatomic, retain) IBOutlet UIButton *settingsBtn;
 @property (nonatomic, retain) IBOutlet UIButton *backBtn;
 
+@property (nonatomic, assign) BOOL following;
+
 @property (nonatomic, retain) IBOutlet UIButton *followUserBtn;
 @property (nonatomic, retain) IBOutlet UIButton *followingUserBtn;
 

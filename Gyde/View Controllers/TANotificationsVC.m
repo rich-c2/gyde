@@ -42,14 +42,14 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
 		
-		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-        
-        tabItem.customHighlightedImage = [UIImage imageNamed:@"news_tab_button-on.png"];
-        tabItem.customStdImage = [UIImage imageNamed:@"news_tab_button.png"];
-		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-		
-        self.tabBarItem = tabItem;
-        tabItem = nil;
+//		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
+//        
+//        tabItem.customHighlightedImage = [UIImage imageNamed:@"news_tab_button-on.png"];
+//        tabItem.customStdImage = [UIImage imageNamed:@"news_tab_button.png"];
+//		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
+//		
+//        self.tabBarItem = tabItem;
+//        tabItem = nil;
     }
     return self;
 }
@@ -266,7 +266,7 @@
 
 - (void)initNavBar {
 	
-	self.title = @"NOTIFICATIONS";
+	self.navigationItem.title = @"NOTIFICATIONS";
 	self.navigationController.navigationBarHidden = NO;
 }
 

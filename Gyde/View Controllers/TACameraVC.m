@@ -38,14 +38,14 @@
 	
     if (self) {
 		
-		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-        
-        tabItem.customHighlightedImage = [UIImage imageNamed:@"share_tab_button-on.png"];
-        tabItem.customStdImage = [UIImage imageNamed:@"share_tab_button.png"];
-		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
+//		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
+//        
+//        tabItem.customHighlightedImage = [UIImage imageNamed:@"share_tab_button-on.png"];
+//        tabItem.customStdImage = [UIImage imageNamed:@"share_tab_button.png"];
+//		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
 		
-        self.tabBarItem = tabItem;
-        tabItem = nil;
+//        self.tabBarItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
+//        tabItem = nil;
     }
     return self;
 }

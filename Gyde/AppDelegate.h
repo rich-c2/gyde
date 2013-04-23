@@ -35,7 +35,7 @@ extern NSString* const FACEBOOK_APP_ID;
 	IBOutlet TALandingVC *landingVC;
 	IBOutlet UINavigationController *landingNav;
     
-	IBOutlet UITabBarController *tabBarController;
+	IBOutlet GydeTabBarController *tabBarController;
 	
 	TASettingsVC *settingsVC;
 	TAExploreVC *exploreVC;
@@ -55,7 +55,7 @@ extern NSString* const FACEBOOK_APP_ID;
 @property (nonatomic, retain) IBOutlet TALandingVC *landingVC;
 @property (nonatomic, retain) IBOutlet UINavigationController *landingNav;
 
-@property (nonatomic, retain) IBOutlet UITabBarController *tabBarController;
+@property (nonatomic, retain) IBOutlet GydeTabBarController *tabBarController;
 
 @property (nonatomic, retain) TASettingsVC *settingsVC;
 @property (nonatomic, retain) TAExploreVC *exploreVC;
