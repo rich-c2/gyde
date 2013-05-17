@@ -8,10 +8,7 @@
 
 #import "TAPlacesVC.h"
 #import "StringHelper.h"
-#import "HTTPFetcher.h"
-#import "JSONKit.h"
 #import "TAMapItVC.h"
-#import "SVProgressHUD.h"
 #import "TASimpleTableCell.h"
 #import "MyMapAnnotation.h"
 
@@ -222,7 +219,7 @@
 }
 
 
-- (IBAction)mapItButtonTapped:(id)sender {
+- (void)mapItButtonTapped:(id)sender {
 	
 	CLLocation *location = [[CLLocation alloc] initWithLatitude:[self.latitude doubleValue] longitude:[self.longitude doubleValue]];
 
@@ -263,12 +260,6 @@
                                  }
                              }
                                   viewForHUD:self.view];
-}
-
-
-- (IBAction)goBack:(id)sender {
-
-    [self.navigationController popViewControllerAnimated:YES];
 }
 
 

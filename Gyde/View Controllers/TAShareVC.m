@@ -8,11 +8,7 @@
 
 #import "TAShareVC.h"
 #import "AppDelegate.h"
-#import "SVProgressHUD.h"
-#import "JSONKit.h"
-#import "HTTPFetcher.h"
 #import "StringHelper.h"
-#import "XMLFetcher.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "TAUsersVC.h"
 #import "TAPlacesVC.h"
@@ -29,6 +25,7 @@
 #define FACEBOOK_ALERT_TAG 10000
 #define GO_BACK_ALERT_TAG 3000
 #define NO_TWITTER_ACCOUNT_TAG 4000
+#define NO_METADATA_TAG 5000
 
 @interface TAShareVC ()
 
@@ -38,7 +35,7 @@
 
 @synthesize photo, imageReferenceURL, selectedCity, tagLabel, captionField, photoView;
 @synthesize currentLocation, selectedTag, cityLabel, recommendToUsernames, placeData, selectedAccountIdentifier;
-@synthesize placeTitleLabel, scrollView, twitterAccounts, savedAccountStore;
+@synthesize placeTitleLabel, scrollView, savedAccountStore;
 
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
@@ -84,8 +81,7 @@
     [self.captionField becomeFirstResponder];
     
 	
-	// Place the photo within the polaroid
-	// image view
+	// Place the photo within the polaroid image view
 	[self.photoView setImage:self.photo];
 	
 	
@@ -123,7 +119,6 @@
 	self.selectedTag = nil;
 	self.recommendToUsernames = nil;
 	self.placeData = nil;
-	self.twitterAccounts = nil;
     self.guideData = nil;
 	
 	self.captionField = nil;
@@ -367,6 +362,9 @@
             [self.navigationController popViewControllerAnimated:YES];
         }
     }
+    
+    if (alertView.tag == NO_METADATA_TAG)
+        [self.navigationController popViewControllerAnimated:YES];
 	
 	if (alertView.tag == SUBMIT_ALERT_TAG && !self.shareOnTwitter)
         [self.navigationController popViewControllerAnimated:YES];
@@ -421,7 +419,7 @@
 
 #pragma MY METHODS 
 
-- (IBAction)goBack:(id)sender {
+- (void)goBack:(id)sender {
     
     if (![[NSUserDefaults standardUserDefaults] boolForKey:SUBMIT_PLACE_ALERT_KEY_DISPLAYED]) {
         UIAlertView *av =  [[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"You are about to go back without saving this place. Are you sure you want to go back?"
@@ -432,6 +430,18 @@
     }
 
 	[self.navigationController popViewControllerAnimated:YES];
+}
+
+
+- (void)getCity {
+
+    [self initGetCityApi:^(BOOL success) {
+       
+        if (success) {
+        
+            self.cityLabel.userInteractionEnabled = NO;
+        }
+    }];
 }
 
 
@@ -891,28 +901,56 @@
     
     [assetslibrary assetForURL:self.imageReferenceURL resultBlock:^(ALAsset *asset) {
         
-        NSDictionary *metadata = asset.defaultRepresentation.metadata;
-        NSLog(@"IMAGE METADATA:%@", metadata);
+//        NSDictionary *metadata = asset.defaultRepresentation.metadata;
+//        NSLog(@"IMAGE METADATA:%@", metadata);
+        
         CLLocation *loc = ((CLLocation*)[asset valueForProperty:ALAssetPropertyLocation]);
-        CLLocationCoordinate2D c = loc.coordinate;
-        longitude = (double)c.longitude;
-        latitude  = (double)c.latitude;
         
-        // Make lat/lon easier to reference
-        double lat = latitude;
-        double lon = longitude;
+        // Detect if location metadata was attached to the asset
+        if (loc == nil) {
         
-        CLLocation *newCurrentLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
-        self.currentLocation = newCurrentLocation;
+            NSString *message = @"There was an error retrieving the location of the image. Please make sure location services are enabled for this app in your phone's Settings";
+            
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error retrieving location" message:message
+                                                           delegate:self cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil, nil];
+            alert.tag = NO_METADATA_TAG;
+            [alert show];
+            return;
+        }
         
-        [self initGetCityApi:^(BOOL success){
+        else {
         
-            NSLog(@"SUCCESSFULLY FOUND CITY!");
-        }];
-        
-        // Place the current location
-        // coordiantes on the map view
-        [self initSingleLocation];
+            CLLocationCoordinate2D c = loc.coordinate;
+            longitude = (double)c.longitude;
+            latitude  = (double)c.latitude;
+            
+            // Make lat/lon easier to reference
+            double lat = latitude;
+            double lon = longitude;
+            
+            CLLocation *newCurrentLocation = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
+            self.currentLocation = newCurrentLocation;
+            
+            [self initGetCityApi:^(BOOL success){
+            
+                if (!success) {
+                    
+                    self.cityLabel.text = @"Could not detect city. Tap to retry.";
+                
+                    // Add single tap gesture recognizer 
+                    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc]
+                                                   initWithTarget:self action:@selector(getCity)];
+                    tgr.numberOfTapsRequired = 1;
+                    tgr.numberOfTouchesRequired = 1;
+                    [self.cityLabel addGestureRecognizer:tgr];
+                }
+            }];
+            
+            // Place the current location
+            // coordiantes on the map view
+            [self initSingleLocation];
+        }
         
     } failureBlock:^(NSError *error) {
         
@@ -998,86 +1036,6 @@
 	}];
 
 	
-}
-
-
-- (void)initUpdateProfileAPI:(NSString *)twt_userid {
-	
-	NSString *postString = [NSString stringWithFormat:@"username=%@&twt_userid=%@&token=%@", [self appDelegate].loggedInUsername, twt_userid, [self appDelegate].sessionToken];
-	
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"UpdateProfile";
-	NSString *urlString = [NSString stringWithFormat:@"%@%@", API_ADDRESS, methodName];
-	
-	// Print the URL to the console
-	NSLog(@"URL:%@", urlString);
-	
-	NSURL *url = [urlString convertToURL];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	updateProfileFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-														  receiver:self action:@selector(receivedUpdateProfileResponse:)];
-	[updateProfileFetcher start];
-	
-	////////////////////////////////////////////////////////////////////////////////
-}
-
-
-// Example fetcher response handling
-- (void)receivedUpdateProfileResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	//NSLog(@"UPDATE PROFILE DETAILS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-    
-	NSAssert(aFetcher == updateProfileFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-	}
-	
-	updateProfileFetcher = nil;
- }
-
-
-- (void)verifyTwitterCredentials:(ACAccount *)twitterAccount {
-
-	//NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:@"richC2", @"username", @"chevy78!rfl", @"password", nil];
-	
-	// Send off a account/verify_credentials request
-	TWRequest *verifyRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://api.twitter.com/1.1/account/verify_credentials.json"] parameters:nil requestMethod:TWRequestMethodGET];
-	
-	// Set the account used to post the tweet.
-	[verifyRequest setAccount:twitterAccount];
-	
-	// Block handler to manage the response
-	[verifyRequest performRequestWithHandler:^(NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error) {
-		
-		if ([urlResponse statusCode] == 200) {
-			
-			// The response from Twitter is in JSON format
-			// Move the response into a dictionary and print
-			NSError *error;        
-			NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&error];
-			NSLog(@"Twitter response: %@", dict);
-			
-		}
-		
-		else
-			NSLog(@"Twitter error, HTTP response: %i", [urlResponse statusCode]);
-	}];
 }
 
 

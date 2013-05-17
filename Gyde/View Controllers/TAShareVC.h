@@ -16,8 +16,6 @@
 #import <MapKit/MapKit.h>
 
 @class Tag;
-@class HTTPFetcher;
-@class XMLFetcher;
 @class ACAccountStore;
 
 @interface TAShareVC : UIViewController <TagsDelegate, GuidesListDelegate, RecommendsDelegate, PlacesDelegate> {
@@ -34,12 +32,7 @@
 	IBOutlet UILabel *cityLabel;
 	
 	IBOutlet UIImageView *photoView;
-	
-	HTTPFetcher *submitFetcher;
-	XMLFetcher *cityFetcher;
-	HTTPFetcher *updateProfileFetcher;
-    HTTPFetcher *guidesFetcher;
-	
+		
 	NSString *selectedCity;
 	Tag *selectedTag;
 	NSMutableArray *recommendToUsernames;
@@ -53,7 +46,6 @@
 	IBOutlet UILabel *placeTitleLabel;
 	IBOutlet UIScrollView *scrollView;
 	
-	NSArray *twitterAccounts;
 	ACAccountStore *savedAccountStore;
 	NSString *selectedAccountIdentifier;
 }
@@ -83,14 +75,11 @@
 @property (nonatomic, retain) IBOutlet UILabel *placeAddressLabel;
 @property (nonatomic, retain) IBOutlet UIScrollView *scrollView;
 
-@property (nonatomic, retain) NSArray *twitterAccounts;
 @property (nonatomic, retain) ACAccountStore *savedAccountStore;
 @property (nonatomic, retain) NSString *selectedAccountIdentifier;
 
 @property (nonatomic, assign) BOOL shareOnTwitter;
 
-- (IBAction)goBack:(id)sender;
-- (IBAction)shareButtonTapped:(id)sender;
 - (IBAction)recommendButtonTapped:(id)sender;
 
 @end

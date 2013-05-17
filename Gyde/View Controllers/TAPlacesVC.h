@@ -11,8 +11,6 @@
 #import <MapKit/MapKit.h>
 #import "RLNoteView.h"
 
-@class HTTPFetcher;
-
 @protocol PlacesDelegate
 
 @optional
@@ -29,8 +27,6 @@
 	
 	BOOL loading;
 	BOOL venuesLoaded;
-
-	HTTPFetcher *venuesFetcher;
 	
 	NSMutableArray *places;
 	NSNumber *latitude;
@@ -52,7 +48,6 @@
 
 @property (nonatomic, retain) IBOutlet UITableView *placesTable;
 
-- (IBAction)mapItButtonTapped:(id)sender;
-- (IBAction)goBack:(id)sender;
+- (void)mapItButtonTapped:(id)sender;
 
 @end
