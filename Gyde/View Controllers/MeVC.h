@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "GridImage.h"
+#import "SDSegmentedControl.h"
 
 typedef enum {
     MeContentModeMyPlaces,
@@ -22,12 +23,8 @@ typedef enum {
 @interface MeVC : UIViewController <GridImageDelegate> {
 
     // Data
-	HTTPFetcher *profileFetcher;
 	HTTPFetcher *isFollowingFetcher;
-	HTTPFetcher *unfollowFetcher;
-	HTTPFetcher *followFetcher;
 	HTTPFetcher *lovedPhotosFetcher;
-    HTTPFetcher *uploadsFetcher;
 	
 	NSMutableArray *photos;
     NSMutableArray *lovedPhotos;
@@ -75,6 +72,8 @@ typedef enum {
 	IBOutlet UIScrollView *contentScrollView;
 }
 
+@property (nonatomic, retain) IBOutlet SDSegmentedControl *segmentedControl;
+
 @property (nonatomic, assign) MeContentMode contentMode;
 
 @property (nonatomic, retain) NSManagedObjectContext *managedObjectContext;
@@ -112,23 +111,11 @@ typedef enum {
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil observeLogin:(BOOL)observe;
 
-- (void)showLoadingWithStatus:(NSString *)status inView:(UIView *)view;
-- (void)hideLoading;
+- (IBAction)segmentedControlChanged:(id)sender;
 
 - (void)loadUserDetails;
 - (IBAction)followingButtonTapped:(id)sender;
 - (IBAction)followersButtonTapped:(id)sender;
-
-- (IBAction)followUserButtonTapped:(id)sender;
-- (IBAction)followingUserButtonTapped:(id)sender;
-
-- (IBAction)photosButtonTapped:(id)sender;
-
-- (IBAction)myContentButtonTapped:(id)sender;
-- (IBAction)findFriendsButtonTapped:(id)sender;
-
-- (IBAction)placesButtonTapped:(id)sender;
-- (IBAction)guidesButtonTapped:(id)sender;
 
 - (void)willLogout;
 

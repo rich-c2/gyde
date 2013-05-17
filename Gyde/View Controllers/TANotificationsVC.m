@@ -15,7 +15,6 @@
 #import "TAProfileVC.h"
 #import "TAImageDetailsVC.h"
 #import "TAGuideDetailsVC.h"
-#import "CustomTabBarItem.h"
 #import "MyGuidesTableCell.h"
 #import "TAScrollVC.h"
 #import "SVPullToRefresh.h"
@@ -42,14 +41,6 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
 		
-//		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-//        
-//        tabItem.customHighlightedImage = [UIImage imageNamed:@"news_tab_button-on.png"];
-//        tabItem.customStdImage = [UIImage imageNamed:@"news_tab_button.png"];
-//		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-//		
-//        self.tabBarItem = tabItem;
-//        tabItem = nil;
     }
     return self;
 }

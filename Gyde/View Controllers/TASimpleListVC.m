@@ -76,10 +76,16 @@
 		// Show loading animation
 		[self showLoading];
 		
-		if (self.listMode == ListModeLovedBy) 
-			[self initLovedByAPI];
-		else if (self.listMode == ListModeTags) 
-			[self fetchTags];
+		if (self.listMode == ListModeLovedBy) {
+            self.navigationItem.title = @"LOVED BY";
+            [self initLovedByAPI];
+        }
+			
+		else if (self.listMode == ListModeTags) {
+            self.navigationItem.title = @"ACTIVITIES";
+            [self fetchTags];
+        }
+			
 	}
 }
 

@@ -12,7 +12,6 @@
 #import "SVProgressHUD.h"
 #import "JSONKitRequest.h"
 #import "TAProfileVC.h"
-#import "AppDelegate.h"
 #import "TAUserTableCell.h"
 #import "HTTPFetcher.h"
 #import "ASIHTTPRequest.h"
@@ -46,7 +45,7 @@
     [super viewDidLoad];
     
 	// Set the title of this view controller
-	self.title = self.navigationTitle;
+	self.title = [self.navigationTitle uppercaseString];
     self.navigationController.navigationBarHidden = NO;
 	
 	if (self.usersMode == UsersModeFindViaContacts) {
@@ -55,16 +54,16 @@
 	}
 	
 	if (self.usersMode == UsersModeRecommendTo) {
-		
-        UIButton *saveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [saveBtn setFrame:CGRectMake(256, 8, 54, 27)];
-        [saveBtn addTarget:self action:@selector(saveSelections:) forControlEvents:UIControlEventTouchUpInside];
-        [saveBtn setImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
         
-        UIView *topNav = [self.view viewWithTag:TAP_NAV_TAG];
-        [topNav addSubview:saveBtn];
+        UIButton *saveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [saveBtn setImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
+        [saveBtn setImage:[UIImage imageNamed:@"nav-bar-save-button-on.png"] forState:UIControlStateHighlighted];
+        [saveBtn setFrame:CGRectMake(0, 0, 54, 27)];
+        [saveBtn addTarget:self action:@selector(saveSelections:) forControlEvents:UIControlEventTouchUpInside];
+        UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveBtn];
+        
+        self.navigationItem.rightBarButtonItem = saveButtonItem;
 	}
-	
 	
 	// If the mode is UsersModeSearchUsers
 	// then we need to show the search bar
@@ -267,11 +266,9 @@
 
 - (void)configureCell:(TAUserTableCell *)cell atIndexPath:(NSIndexPath *)indexPath {
 	
-    
     // Make sure the cell images don't scale
     [cell.backgroundView setContentMode:UIViewContentModeTop];
     [cell.selectedBackgroundView setContentMode:UIViewContentModeTop];
-    
     
 	NSString *name;
 	NSString *username;
@@ -279,40 +276,19 @@
 	
 	BOOL followingUser = NO;
 	
-	// FOR NOW - account for the fact that FindUser returns
-	// a set of Users in a different format
-	//if (self.usersMode == UsersModeFindViaContacts || self.usersMode == UsersModeFindViaTwitter) {
+	User *user = [self.users objectAtIndex:[indexPath row]];
 		
-		User *user = [self.users objectAtIndex:[indexPath row]];
-		
-		if ([self.following containsObject:user.username])
-			followingUser = YES;
-		
-		name = user.fullName;
-		username = user.username;
-		avatarURL = user.avatarURL;
-		
-		[cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
-		
-		if ([name length] == 0) name = @"";
-	/*}
-	
-	else {
-		
-		// Retrieve the Dictionary at the given index that's in self.users
-		NSDictionary *user = [self.users objectAtIndex:[indexPath row]];
-		
-		name = [user objectForKey:@"name"];
-		username = [user objectForKey:@"username"];
-		avatarURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [user objectForKey:@"avatar"]];
-		
-		if ([self.following containsObject:username])
-			followingUser = YES;
-		
-		[cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
-		
-		if ([name length] == 0) name = @"";
-	}*/
+    if ([self.following containsObject:user.username])
+        followingUser = YES;
+    
+    name = user.fullName;
+    username = user.username;
+    avatarURL = user.avatarURL;
+    
+    [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
+    
+    if ([name length] == 0) name = @"";
+
 	
     if (self.usersMode != UsersModeRecommendTo)
         [cell setFollowingUser:followingUser];
@@ -544,6 +520,15 @@
 	[self.usersTable reloadData];
 	
 	[MBProgressHUD hideAllHUDsForView:self.view animated:YES];
+}
+
+- (void)setSelectedRows {
+
+    for (User *user in self.selectedUsers) {
+    
+        NSIndexPath *idx = [NSIndexPath indexPathForRow:[self.users indexOfObject:user] inSection:0];
+        [self.usersTable selectRowAtIndexPath:idx animated:NO scrollPosition:UITableViewScrollPositionTop];
+    }
 }
 
 

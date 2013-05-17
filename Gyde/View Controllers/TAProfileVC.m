@@ -20,7 +20,6 @@
 #import "TASettingsVC.h"
 #import "TASimpleListVC.h"
 #import "TAFriendsVC.h"
-#import "CustomTabBarItem.h"
 #import "ProfileGuidesTableCell.h"
 #import "TAGuideDetailsVC.h"
 #import "TAScrollVC.h"
@@ -47,9 +46,8 @@
 @implementation TAProfileVC
 
 @synthesize username, avatarURL, usernameLabel, photosBtn, currentlyInLabel, avatarView, placesScrollView, guidesTable, guides;
-@synthesize followUserBtn, followingUserBtn, followingBtn, followersBtn, myContentBtn, bioView;
-@synthesize findFriendsBtn, contentScrollView, guidesBtn, modePointerView, photos;
-@synthesize followersLabel, followingLabel, settingsBtn, backBtn;
+@synthesize followUserBtn, followingUserBtn, followingBtn, followersBtn, bioView;
+@synthesize contentScrollView, guidesBtn, modePointerView, photos, followersLabel, followingLabel;
 
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil observeLogin:(BOOL)observe {
@@ -60,15 +58,6 @@
         
 		// Listen for when the user has logged-in
 		if (observe) {
-			
-			CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-			
-			tabItem.customHighlightedImage = [UIImage imageNamed:@"account_tab_button-on.png"];
-			tabItem.customStdImage = [UIImage imageNamed:@"account_tab_button.png"];
-			tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-			
-			self.tabBarItem = tabItem;
-			tabItem = nil;
 			
 			[self initLoginObserver];
 		}
@@ -93,7 +82,6 @@
     
     self.followUserBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button.png"] forState:UIControlStateNormal];
-    [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateHighlighted];
     [self.followUserBtn setTitle:@"FOLLOW" forState:UIControlStateNormal];
     [self.followUserBtn setFrame:CGRectMake(0, 0, 69, 27)];
     [self.followUserBtn.titleLabel setFont:[UIFont systemFontOfSize:10]];
@@ -117,7 +105,6 @@
 	if ([self.username length] > 0)
 		[self.usernameLabel setText:self.username];
 	
-	//[self.contentScrollView setContentSize:CGSizeMake(self.contentScrollView.frame.size.width, (self.contentScrollView.frame.size.height * 1.5))];
 }
 
 
@@ -138,8 +125,6 @@
 	self.photosBtn = nil;
 	self.usernameLabel = nil;
 	self.avatarView = nil;
-	self.myContentBtn = nil;
-    self.findFriendsBtn = nil;
 	
 	self.contentScrollView = nil;
 	
@@ -149,8 +134,6 @@
 	self.placesScrollView = nil;
 	self.followersLabel = nil;
 	self.followingLabel = nil;
-	self.settingsBtn = nil;
-	self.backBtn = nil;
 	self.guidesTable = nil;
     
     [super viewDidUnload];
@@ -164,61 +147,35 @@
 
 
 - (void)viewWillAppear:(BOOL)animated {
-	
-	if ([self.navigationController.viewControllers count] == 1) self.backBtn.hidden = YES;
-	
+		
 	if ([self.username length] > 0){
 	
-		// Start fetching the Profile API
-		// if we're not already loading it.
-		if (!loading && !profileLoaded) { 
-			
-			//[self showLoading];
-			
-			[self loadUserDetails];
-		}
+		[self loadUserDetails];
 		
 		// Init the "Uploads" API
-		if (!uploadsLoaded && self.placesScrollView.alpha > 0.0) {
+		if (self.placesScrollView.alpha > 0.0) {
             
-            //[self showLoadingWithStatus:@"Loading places" inView:self.placesScrollView];
-		
-			[self initUploadsAPI];
+            [self initUploadsAPI];
 		}
 		
-		else if (!guidesLoaded && self.guidesTable.alpha > 0.0) {
+		else if (self.guidesTable.alpha > 0.0) {
 			
 			[self initMyGuidesAPI];
 		}
 		
-		// IF we're not already loading 
-		// "isFollowing" API then start it
-		if (!loadingIsFollowing && !isFollowingLoaded) {
-			
-			// IF the loggedIn User is look at his/her own profile
-			// then disable the follow/unfollow buttons
-			if (![self.username isEqualToString:[self appDelegate].loggedInUsername]) {
+		// IF the loggedIn User is look at his/her own profile
+        // then disable the follow/unfollow buttons
+        if (![self.username isEqualToString:[self appDelegate].loggedInUsername]) {
 		
-				[self detectFollowStatus];
-			}
+            [self detectFollowStatus];
 		}
 		
 		// FOR NOW: Add an "save" button to the top-right of the nav bar
 		// if this is a guide NOT created by the logged-in user
-		if ([self.username isEqualToString:[self appDelegate].loggedInUsername]) {
-			
-			
-			[self.followUserBtn setHidden:YES];
-			[self.followUserBtn setHidden:YES];
-			
-			[self.settingsBtn setHidden:NO];
-		}
-		
 		else {
 			
-			// HIDE MY CONTENT BUTTON
-			self.myContentBtn.hidden = YES;
-			self.findFriendsBtn.hidden = YES;
+			[self.followUserBtn setHidden:YES];
+			[self.followUserBtn setHidden:YES];
 		}
 	}
     
@@ -395,9 +352,7 @@
 		
 		[self.followingUserBtn setHidden:YES];
 		[self.followUserBtn setHidden:YES];
-		
-		[self.settingsBtn setHidden:NO];
-		
+				
 		// Get an iVar of AppDelegate
 		// and STOP observing the AppDelegate's userLoggedIn
 		// property now that the user HAS logged-in
@@ -450,6 +405,7 @@
     self.following = !self.following;
 
 	if (self.following){
+        
     
         [self.followUserBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
         [self.followUserBtn setBackgroundImage:[UIImage imageNamed:@"follow-button-on.png"] forState:UIControlStateNormal];
@@ -600,75 +556,39 @@
 #pragma Profile methods
 
 - (void)initProfileAPI {
-
-	NSString *postString = [NSString stringWithFormat:@"username=%@", self.username];
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"Profile";	
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	profileFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-													receiver:self
-											   action:@selector(receivedProfileResponse:)];
-	[profileFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedProfileResponse:(HTTPFetcher *)aFetcher {
     
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	//NSLog(@"PROFILE DETAILS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
+    NSDictionary *params = @{ @"username" : self.username };
     
-	NSAssert(aFetcher == profileFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		profileLoaded = YES;
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		// Build an array from the dictionary for easy access to each entry
-		NSDictionary *newUserData = [results objectForKey:@"user"];
-
-		// Update name label
-		[self.currentlyInLabel setText:[NSString stringWithFormat:@"Currently in: %@", [newUserData objectForKey:@"city"]]];
-		
-		// Update followers and following buttons
-		[self.followersLabel setText:[newUserData objectForKey:@"followers"]];
-		[self.followingLabel setText:[newUserData objectForKey:@"following"]];
-		
-		// Update photos button
-		[self.photosBtn setTitle:[NSString stringWithFormat:@"My photos (%@)", [newUserData objectForKey:@"media"]] forState:UIControlStateNormal];
-		
-		// Load avatar image
-		self.avatarURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [newUserData objectForKey:@"avatar"]];
-		[self initAvatarImage:self.avatarURL];
-		
-		//Bio
-		NSString *bioText = [newUserData objectForKey:@"bio"];
-		if ([bioText length] > 0) self.bioView.text = bioText; 
-
-	}
-	
-	// Hide loading view
-	//[self hideLoading];
-	
-	profileFetcher = nil;
+    [[GlooRequestManager sharedManager] post:@"Profile" params:params
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 loading = NO;
+                             
+                                 profileLoaded = YES;
+                                 
+                                 // Build an array from the dictionary for easy access to each entry
+                                 NSDictionary *newUserData = [json objectForKey:@"user"];
+                                 
+                                 // Update name label
+                                 [self.currentlyInLabel setText:[NSString stringWithFormat:@"Currently in: %@", [newUserData objectForKey:@"city"]]];
+                                 
+                                 // Update followers and following buttons
+                                 [self.followersLabel setText:[newUserData objectForKey:@"followers"]];
+                                 [self.followingLabel setText:[newUserData objectForKey:@"following"]];
+                                 
+                                 // Update photos button
+                                 [self.photosBtn setTitle:[NSString stringWithFormat:@"My photos (%@)", [newUserData objectForKey:@"media"]] forState:UIControlStateNormal];
+                                 
+                                 // Load avatar image
+                                 self.avatarURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [newUserData objectForKey:@"avatar"]];
+                                 [self initAvatarImage:self.avatarURL];
+                                 
+                                 //Bio
+                                 NSString *bioText = [newUserData objectForKey:@"bio"];
+                                 if ([bioText length] > 0) self.bioView.text = bioText;
+                             }
+                                  viewForHUD:self.view];
 }
 
 
@@ -823,23 +743,6 @@
 }
 
 
-- (IBAction)myContentButtonTapped:(id)sender {
-	
-	// Push the following VC onto the stack
-	TAMyContentVC *myContentVC = [[TAMyContentVC alloc] initWithNibName:@"TAMyContentVC" bundle:nil];
-	[myContentVC setUsername:self.username];
-	[self.navigationController pushViewController:myContentVC animated:YES];
-}
-
-
-- (IBAction)findFriendsButtonTapped:(id)sender {
-	
-	// Push the following VC onto the stack
-	TAFriendsVC *friendsVC = [[TAFriendsVC alloc] initWithNibName:@"TAFriendsVC" bundle:nil];
-	[self.navigationController pushViewController:friendsVC animated:YES];
-}
-
-
 - (void)willLogout {
 	
 	[self clearUIFields];
@@ -849,17 +752,11 @@
 
 
 - (void)clearUIFields {
-	
-	// Start 'observing' for when the user
-	// logs in again 
-	//[self initLoginObserver];
 
 	self.username = nil;
 	self.currentlyInLabel.text = nil;
-	self.myContentBtn.hidden = YES;
-	self.findFriendsBtn.hidden = YES;
-	[self.followersBtn setTitle:@"0 Followers" forState:UIControlStateNormal];
-	[self.followingBtn setTitle:@"0 Following" forState:UIControlStateNormal];
+	[self.followersBtn setTitle:@"FOLLOWERS" forState:UIControlStateNormal];
+	[self.followingBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
 	self.followingUserBtn.hidden = YES;
 	self.followUserBtn.hidden = YES;
 	
@@ -966,6 +863,15 @@
 	// How many have already thumbs have been added previously?
 	NSInteger subviewsCount = [self.placesScrollView.subviews count];
 	
+    // Clear previous subviews for now...
+    if (subviewsCount > 0) {
+        
+        for (UIView *view in self.placesScrollView.subviews)
+            [view removeFromSuperview];
+    }
+    
+    subviewsCount = 0;
+    
 	// Set what the next tag value should be
 	NSInteger tagCounter = IMAGE_VIEW_TAG + subviewsCount;
 	
@@ -1075,8 +981,7 @@
 		NSArray *imagesArray = [results objectForKey:@"media"];
 		
 		// Take the data from the API, convert it
-		// to Photos objects and store them in
-		// self.photos array
+		// to Photos objects and store them in self.photos array
 		[self updatePhotosArray:imagesArray];
 		
 		[self userUploadsRequestFinished];
@@ -1093,7 +998,7 @@
 	
 	// update the page index for
 	// the next batch
-	imagesPageIndex++;
+	//imagesPageIndex++;
 	
 	// Update the image grid
 	[self updateImageGrid];
@@ -1109,6 +1014,8 @@
 - (void)updatePhotosArray:(NSArray *)imagesArray {
     
     if (!self.managedObjectContext) self.managedObjectContext = [self appDelegate].managedObjectContext;
+    
+    if (self.photos.count > 0) [self.photos removeAllObjects];
 	
 	for (NSDictionary *image in imagesArray) {
 		

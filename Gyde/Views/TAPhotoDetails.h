@@ -41,12 +41,15 @@
     BOOL viewingBack;
 }
 
+@property (nonatomic, strong) Photo *photo;
 @property (nonatomic, assign) BOOL isLoved;
 
 @property (nonatomic, retain) id <PhotoDetailsDelegate> delegate;
 @property (nonatomic, retain) NSString *selectedCity;
 @property (nonatomic, retain) NSNumber *selectedTagID;
 @property (nonatomic, retain) NSString *selectedTag;
+
+@property (nonatomic, strong) UIButton *lovesCountButton;
 
 @property (nonatomic, retain) UIView *containerView;
 @property (nonatomic, retain) UIView *photoView;

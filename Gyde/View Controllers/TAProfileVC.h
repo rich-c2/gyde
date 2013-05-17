@@ -16,7 +16,6 @@
 
     
 	// Data
-	HTTPFetcher *profileFetcher;
 	HTTPFetcher *isFollowingFetcher;
 	HTTPFetcher *unfollowFetcher;
 	HTTPFetcher *followFetcher;
@@ -53,10 +52,7 @@
 	IBOutlet UILabel *currentlyInLabel;
 	IBOutlet UIButton *photosBtn;
 	IBOutlet UIButton *guidesBtn;
-	
-	IBOutlet UIButton *settingsBtn;
-	IBOutlet UIButton *backBtn;
-	
+		
 	IBOutlet UIButton *followUserBtn;
 	IBOutlet UIButton *followingUserBtn;
 	
@@ -65,10 +61,10 @@
 	
 	
 	// MY CONTENT
-	IBOutlet UIButton *myContentBtn;
-	IBOutlet UIButton *findFriendsBtn;
 	IBOutlet UIScrollView *contentScrollView;
 }
+
+@property (nonatomic, strong) User *user;
 
 @property (nonatomic, retain) NSManagedObjectContext *managedObjectContext;
 
@@ -92,9 +88,6 @@
 @property (nonatomic, retain) IBOutlet UIButton *photosBtn;
 @property (nonatomic, retain) IBOutlet UIButton *guidesBtn;
 
-@property (nonatomic, retain) IBOutlet UIButton *settingsBtn;
-@property (nonatomic, retain) IBOutlet UIButton *backBtn;
-
 @property (nonatomic, assign) BOOL following;
 
 @property (nonatomic, retain) IBOutlet UIButton *followUserBtn;
@@ -103,8 +96,6 @@
 @property (nonatomic, retain) IBOutlet UIButton *followingBtn;
 @property (nonatomic, retain) IBOutlet UIButton *followersBtn;
 
-@property (nonatomic, retain) IBOutlet UIButton *myContentBtn;
-@property (nonatomic, retain) IBOutlet UIButton *findFriendsBtn;
 @property (nonatomic, retain) IBOutlet UIScrollView *contentScrollView;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil observeLogin:(BOOL)observe;
@@ -122,9 +113,6 @@
 - (IBAction)followingUserButtonTapped:(id)sender;
 
 - (IBAction)photosButtonTapped:(id)sender;
-
-- (IBAction)myContentButtonTapped:(id)sender;
-- (IBAction)findFriendsButtonTapped:(id)sender;
 
 - (IBAction)placesButtonTapped:(id)sender;
 - (IBAction)guidesButtonTapped:(id)sender;

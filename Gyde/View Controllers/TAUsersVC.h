@@ -67,6 +67,8 @@ typedef enum  {
 
 @property (nonatomic, retain) IBOutlet TAUserTableCell *loadCell;
 
+@property (nonatomic, strong) NSMutableArray *selectedUsers;
+
 @property (nonatomic, retain) ACAccount *selectedAccount;
 @property (nonatomic, retain) ACAccountStore *accountStore;
 

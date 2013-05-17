@@ -12,10 +12,6 @@
 #import "ImageManager.h"
 #import "JSONKit.h"
 #import "HTTPFetcher.h"
-#import "Guide.h"
-#import "User.h"
-#import "Photo.h"
-#import "Tag.h"
 #import <QuartzCore/QuartzCore.h>
 
 #define MAIN_WIDTH 301
@@ -30,235 +26,7 @@
 
 #define INNER_VIEW_TAG 8888
 
-
 @implementation TAPhotoDetails
-
-
-- (id)initWithFrame:(CGRect)frame imageURL:(NSString *)imageURLString imageID:(NSString *)selectedImageID isLoved:(BOOL)loved isVouched:(BOOL)vouched caption:(NSString *)caption username:(NSString *)username avatarURL:(NSString *)avatarURL tag:(NSString *)tagTitle vouches:(NSInteger)vouches loves:(NSInteger)loves timeElapsed:(NSString *)timeElapsed {
-    
-	self = [super initWithFrame:frame];
-	
-    if (self) {
-		
-		self.imageID = selectedImageID;
-		self.selectedTag = tagTitle;
-        
-        
-        CGFloat topActionsBtnYPos = 10.0;
-        CGFloat usernameXPos = 33.0;
-        CGFloat fontSize = 13.0;
-        CGFloat topRightActionsXPos = 160.0;
-        CGFloat btnXPos = topRightActionsXPos;
-        CGFloat leftPadding = 10.0;
-        UIFont *btnFont = [UIFont systemFontOfSize:fontSize];
-        
-        
-        // Avatar image view
-		UIImageView *aView = [[UIImageView alloc] initWithFrame:CGRectMake(11.0, topActionsBtnYPos, 15.0, 15.0)];
-		[aView setBackgroundColor:[UIColor lightGrayColor]];
-		self.avatarView = aView;
-		[self addSubview:self.avatarView];
-		
-		// Start downloading Avatar image
-		[self initAvatarImage:avatarURL];
-        
-        
-        // USERNAME BUTTON
-		CGFloat usernameYPos = topActionsBtnYPos;
-		UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[btn setFrame:CGRectMake(usernameXPos, usernameYPos, 195.0, 15.0)];
-		[btn setTitle:username forState:UIControlStateNormal];
-        [btn setBackgroundColor:[UIColor clearColor]];
-		[btn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-		[btn addTarget:self action:@selector(usernameTapped:) forControlEvents:UIControlEventTouchUpInside];
-		[btn.titleLabel setFont:[UIFont boldSystemFontOfSize:fontSize]];
-		[btn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-        [btn sizeToFit];
-        
-		[self addSubview:btn];
-        
-        
-        // TIME ELAPSED BUTTON
-        CGSize expectedLabelSize = [timeElapsed sizeWithFont:btnFont];
-        
-		UIButton *timeElapsedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[timeElapsedBtn setFrame:CGRectMake(btnXPos, usernameYPos, (13 + expectedLabelSize.width), 15.0)];
-        [timeElapsedBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-        [timeElapsedBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-        [timeElapsedBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-        [timeElapsedBtn.titleLabel setFont:btnFont];
-        [timeElapsedBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [timeElapsedBtn setBackgroundColor:[UIColor clearColor]];
-        [timeElapsedBtn setImage:[UIImage imageNamed:@"photo-time-icon.png"] forState:UIControlStateNormal];
-        
-        [timeElapsedBtn setTitle:timeElapsed forState:UIControlStateNormal];
-        
-        [timeElapsedBtn setEnabled:NO];
-        [timeElapsedBtn setAdjustsImageWhenDisabled:NO];
-        
-        CGFloat timeElapsedWidth = timeElapsedBtn.frame.size.width;
-        
-		[self addSubview:timeElapsedBtn];
-		
-        
-        // LOVES BUTTON
-        btnXPos += (timeElapsedWidth + leftPadding);
-        CGSize expectedLovesSize = [[NSString stringWithFormat:@"%i", loves] sizeWithFont:btnFont];
-        
-		UIButton *lovesCountBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[lovesCountBtn setFrame:CGRectMake(btnXPos, usernameYPos, (14+expectedLovesSize.width), 15.0)];
-        [lovesCountBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-        [lovesCountBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-        [lovesCountBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
-        
-        [lovesCountBtn setBackgroundColor:[UIColor clearColor]];
-		[lovesCountBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [lovesCountBtn.titleLabel setFont:btnFont];
-        [lovesCountBtn setImage:[UIImage imageNamed:@"photo-loves-icon.png"] forState:UIControlStateNormal];
-        
-        [lovesCountBtn setTitle:[NSString stringWithFormat:@"%i", loves] forState:UIControlStateNormal];
-        
-        [lovesCountBtn setEnabled:NO];
-        [lovesCountBtn setAdjustsImageWhenDisabled:NO];
-        
-        CGFloat lovesCountWidth = lovesCountBtn.frame.size.width;
-        
-		[self addSubview:lovesCountBtn];
-        
-        
-        // LOVE ACTION BUTTON
-        btnXPos += (lovesCountWidth + leftPadding);
-        CGFloat loveActionBtnWidth = 34.0;
-        
-		UIButton *loveActionBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[loveActionBtn setFrame:CGRectMake(btnXPos, usernameYPos, loveActionBtnWidth, 16.0)];
-        
-        [loveActionBtn setBackgroundColor:[UIColor redColor]];
-		[loveActionBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [loveActionBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:9.0]];
-        [loveActionBtn setTitle:@"LOVE" forState:UIControlStateNormal];
-        [loveActionBtn addTarget:self action:@selector(loveButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-        
-        CGFloat loveActionWidth = loveActionBtn.frame.size.width;
-        
-		[self addSubview:loveActionBtn];
-        
-        
-        // FLIP BUTTON
-        btnXPos += (loveActionWidth + 5.0);
-		CGFloat flipYPos = topActionsBtnYPos;
-		UIButton *flipBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[flipBtn setFrame:CGRectMake(btnXPos, flipYPos, 25.0, 15.0)];
-		[flipBtn setTitle:@"FLIP" forState:UIControlStateNormal];
-        [flipBtn setBackgroundColor:[UIColor yellowColor]];
-		[flipBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-		[flipBtn addTarget:self action:@selector(flipPhoto) forControlEvents:UIControlEventTouchUpInside];
-		[flipBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:9.0]];
-        
-		[self addSubview:flipBtn];
-        
-        
-		
-		/*
-         STRUCTURE
-		 
-         First layer is a UIView that acts as
-         the container of all the photo area.
-         With this (containerView) are two main views -
-         photoView and actionsView. The latter refers
-         to a view that contains everything for the 'back' 
-         of the photo.
-        */
-		
-		CGRect cvFrame = CGRectMake(9.0, CONTAINER_START_POINT, MAIN_WIDTH, 302.0);
-		UIView *cv = [[UIView alloc] initWithFrame:cvFrame];
-		[cv setBackgroundColor:[UIColor clearColor]];
-		self.containerView = cv;
-		
-		[self addSubview:self.containerView];
-
-        
-		CGRect cFrame = CGRectMake(0.0, 0.0, MAIN_WIDTH, 708.0);
-		UIView *c = [[UIView alloc] initWithFrame:cFrame];
-		[c setBackgroundColor:[UIColor clearColor]];
-		self.photoView = c;
-		
-		[self.containerView addSubview:self.photoView];
-        
-        
-         /*
-         IMAGE DISPLAY
-		 
-         UIImageView for the polaroid image artwork, with
-         a TAPhotoView on top of that as our placeholder
-         for the actual image that is being downloaded
-         to be placed into.
-         */
-		
-		CGRect polaroidFrame = CGRectMake(0.0, 0.0, MAIN_WIDTH, MAIN_HEIGHT);
-		UIImageView *polaroidBG = [[UIImageView alloc] initWithFrame:polaroidFrame];
-		[polaroidBG setImage:[UIImage imageNamed:@"polaroid-bg-main.png"]];
-		
-		[self.photoView addSubview:polaroidBG];
-		
-		
-		// MAIN IMAGE VIEW
-		CGRect iViewFrame = CGRectMake(10.0, 0.0, 281.0, 281.0);
-		TAPhotoView *iView = [[TAPhotoView alloc] initWithFrame:iViewFrame];
-		[iView setBackgroundColor:[UIColor clearColor]];
-		self.imageView = iView;
-		
-		[self.photoView addSubview:self.imageView];
-		
-        
-		// ACTIONS VIEW
-		CGRect avFrame = CGRectMake(0.0, 0.0, MAIN_WIDTH, MAIN_HEIGHT);
-		UIView *av = [[UIView alloc] initWithFrame:avFrame];
-        [av setBackgroundColor:[UIColor clearColor]];
-        
-		self.actionsView = av;
-        
-		UIImageView *actionsPolaroidBG = [[UIImageView alloc] initWithFrame:polaroidFrame];
-		[polaroidBG setImage:[UIImage imageNamed:@"polaroid-bg-main.png"]];
-		
-        [self.actionsView addSubview:actionsPolaroidBG];
-        
-        //[self populateActionsView:photo];
-        
-        
-		
-		/*
-         PROGRESS INDICATOR
-		 
-         Progress Indicator is a property as it needs
-         to be updated regularly as the main image download
-         is progressing.
-         */
-		CGRect imageViewFrame = self.imageView.frame;
-		CGFloat progressXPos = imageViewFrame.origin.x + ((imageViewFrame.size.width/2.0) - 75.0);
-		CGFloat progressYPos = imageViewFrame.origin.y + ((imageViewFrame.size.height/2.0) - 4.0);
-		CGRect progressFrame = CGRectMake(progressXPos, progressYPos, 150.0, 9.0);
-        
-		self.progressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
-		[self.progressView setFrame:progressFrame];
-		[self.photoView addSubview:self.progressView];
-		
-		
-		// IMAGE URL
-		self.urlString = imageURLString;
-		
-		
-        
-		// CAPTION
-		CGFloat labelYPos = 330.0;
-		UILabel *captionLabel = [[UILabel alloc] initWithFrame:CGRectMake(11.0, labelYPos, MAIN_WIDTH, 18.0)];
-		[captionLabel setText:caption];
-		[captionLabel setBackgroundColor:[UIColor clearColor]];
-		[self addSubview:captionLabel];
-	}
-	
-	return self;
-}
 
 
 - (id)initWithFrame:(CGRect)frame forPhoto:(Photo *)photo loved:(BOOL)loved {
@@ -267,6 +35,7 @@
 	
     if (self) {
 		
+        self.photo = photo;
 		self.imageID = [photo photoID];
 		self.selectedTag = [photo.tag title];
         self.isLoved = loved;
@@ -326,8 +95,6 @@
         
         [timeElapsedBtn setEnabled:NO];
         [timeElapsedBtn setAdjustsImageWhenDisabled:NO];
-        
-        CGFloat timeElapsedWidth = timeElapsedBtn.frame.size.width;
         
 		[self addSubview:timeElapsedBtn];
         
@@ -537,23 +304,23 @@
         CGFloat lovesBtnXPos = 265.0;
         CGSize expectedLovesSize = [[NSString stringWithFormat:@"%i", [photo.lovesCount intValue]] sizeWithFont:btnFont];
         
-		UIButton *lovesCountBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-		[lovesCountBtn setFrame:CGRectMake(lovesBtnXPos, locationYPos, (14+expectedLovesSize.width), 15.0)];
-        [lovesCountBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
-        [lovesCountBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
-        [lovesCountBtn setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+		self.lovesCountButton = [UIButton buttonWithType:UIButtonTypeCustom];
+		[self.lovesCountButton setFrame:CGRectMake(lovesBtnXPos, locationYPos, (14+expectedLovesSize.width), 15.0)];
+        [self.lovesCountButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 3)];
+        [self.lovesCountButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 3, 0, 0)];
+        [self.lovesCountButton setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
         
-        [lovesCountBtn setBackgroundColor:[UIColor clearColor]];
-		[lovesCountBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [lovesCountBtn.titleLabel setFont:btnFont];
-        [lovesCountBtn setImage:[UIImage imageNamed:@"photo-loves-icon.png"] forState:UIControlStateNormal];
+        [self.lovesCountButton setBackgroundColor:[UIColor clearColor]];
+		[self.lovesCountButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [self.lovesCountButton.titleLabel setFont:btnFont];
+        [self.lovesCountButton setImage:[UIImage imageNamed:@"photo-loves-icon.png"] forState:UIControlStateNormal];
         
-        [lovesCountBtn setTitle:[NSString stringWithFormat:@"%i", [photo.lovesCount intValue]] forState:UIControlStateNormal];
+        [self.lovesCountButton setTitle:[NSString stringWithFormat:@"%i", [photo.lovesCount intValue]] forState:UIControlStateNormal];
         
-        [lovesCountBtn setEnabled:NO];
-        [lovesCountBtn setAdjustsImageWhenDisabled:NO];
+        [self.lovesCountButton setEnabled:NO];
+        [self.lovesCountButton setAdjustsImageWhenDisabled:NO];
         
-		[self addSubview:lovesCountBtn];
+		[self addSubview:self.lovesCountButton];
 	}
 	
 	return self;
@@ -675,9 +442,24 @@
 }
 
 - (void)loveButtonTapped:(id)sender {
-	
-	// pass info on to delegate
+    
+    // pass info on to delegate
 	[self.delegate loveButtonTapped:self.imageID];
+    
+    self.isLoved = !self.isLoved;	
+    
+    if (self.isLoved) {
+        
+        [self.loveBtn setSelected:YES];
+        [self.loveBtn setHighlighted:NO];
+    }
+    else {
+        
+        [self.loveBtn setSelected:NO];
+        [self.loveBtn setHighlighted:NO];
+    }
+
+    [self updateLovesCountLabel];
 }
 
 - (void)tweetButtonTapped {
@@ -741,12 +523,12 @@
     UIFont  *labelFont = [UIFont systemFontOfSize:11.0];
     UIColor *labelColor = [UIColor colorWithRed:165.0/255.0 green:163.0/255.0 blue:160.0/255.0 alpha:1.0];
     UIColor *textLabelColor = [UIColor blackColor];
-    CGFloat labelYPos = 26.0;
-    CGFloat labelHeight = 19.0;
+    CGFloat labelYPos = 18.0;
+    CGFloat labelHeight = 22.0;
     CGFloat labelPadding = 2.0;
     
     CGFloat textLabelXPos = 90.0;
-    CGFloat textLabelMaxWidth = 165.0;
+    CGFloat textLabelMaxWidth = 190.0;
     
     CGFloat btnHorizontalPadding = 3.0;
     
@@ -754,19 +536,15 @@
     
     UIImage *borderImage = [UIImage imageNamed:@"metadata-border.png"];
     CGRect borderFrame = CGRectMake(dataLabelXPos, labelYPos, borderWidth, borderImage.size.height);
-    UIImageView *border = [[UIImageView alloc] initWithFrame:borderFrame];
-    [border setImage:borderImage];
-    [self.actionsView addSubview:border];
     
     
     // PLACE ////////////////////////////////////////////
     
-    UILabel *placeLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+6.0), dataLabelWidth, labelHeight)];
+    UILabel *placeLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, labelYPos, dataLabelWidth, labelHeight)];
     [placeLabel setText:@"PLACE"];
     [placeLabel setBackgroundColor:[UIColor clearColor]];
     [placeLabel setTextColor:labelColor];
     [placeLabel setFont:labelFont];
-    [placeLabel sizeToFit];
     
     [self.actionsView addSubview:placeLabel];
     
@@ -774,20 +552,17 @@
     NSString *locationTitle = [photo.venue title];
     if ([locationTitle length] == 0) locationTitle = @"[untitled]";
     
-    UILabel *textPlaceLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+6.0), textLabelMaxWidth, labelHeight)];
+    UILabel *textPlaceLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, labelYPos, textLabelMaxWidth, labelHeight)];
     [textPlaceLabel setText:locationTitle];
     [textPlaceLabel setBackgroundColor:[UIColor clearColor]];
     [textPlaceLabel setTextColor:textLabelColor];
     [textPlaceLabel setFont:labelFont];
-    [textPlaceLabel sizeToFit];
     
     [self.actionsView addSubview:textPlaceLabel];
     
     // PLACE END ////////////////////////////////////////////
     
-
-    labelYPos += labelHeight + labelPadding;
-    labelHeight = 19.0;
+    labelYPos += labelHeight;
     
     UIImageView *border22 = [[UIImageView alloc] initWithFrame:CGRectMake(borderFrame.origin.x, labelYPos, borderWidth, borderFrame.size.height)];
     [border22 setImage:borderImage];
@@ -796,30 +571,36 @@
 
     // CAPTION ////////////////////////////////////////////
     
-    UILabel *captionLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+6.0), dataLabelWidth, labelHeight)];
+    UILabel *captionLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+labelPadding), dataLabelWidth, labelHeight)];
     [captionLabel setText:@"CAPTION"];
     [captionLabel setBackgroundColor:[UIColor clearColor]];
     [captionLabel setTextColor:labelColor];
     [captionLabel setFont:labelFont];
-    [captionLabel sizeToFit];
     
     [self.actionsView addSubview:captionLabel];
     
     
-    UILabel *textCaptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+6.0), textLabelMaxWidth, labelHeight)];
-    [textCaptionLabel setText:[photo caption]];
+    UILabel *textCaptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+labelPadding), textLabelMaxWidth, labelHeight)];
+    
+    NSString *captionStr = [photo caption];
+    if (captionStr.length == 0) captionStr = @"-";
+    
+    [textCaptionLabel setText:captionStr];
+    [textCaptionLabel setNumberOfLines:0];
     [textCaptionLabel setBackgroundColor:[UIColor clearColor]];
     [textCaptionLabel setTextColor:textLabelColor];
     [textCaptionLabel setFont:labelFont];
-    [textCaptionLabel sizeToFit];
+    textCaptionLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+    
+    CGSize labelsize = [[photo caption] sizeWithFont:labelFont constrainedToSize:CGSizeMake(textLabelMaxWidth, 28) lineBreakMode:UILineBreakModeWordWrap];
+    textCaptionLabel.frame=CGRectMake(textLabelXPos, (labelYPos+labelPadding+4.0), textLabelMaxWidth, labelsize.height);
     
     [self.actionsView addSubview:textCaptionLabel];
     
     // CAPTION END ////////////////////////////////////////////////
     
     
-    labelYPos += labelHeight + labelPadding;
-    labelHeight = 19.0;
+    labelYPos = CGRectGetMaxY(textCaptionLabel.frame) + 4.0;
     
     
     UIImageView *border2 = [[UIImageView alloc] initWithFrame:CGRectMake(borderFrame.origin.x, labelYPos, borderWidth, borderFrame.size.height)];
@@ -827,7 +608,7 @@
     [self.actionsView addSubview:border2];
     
     // TAG
-    UILabel *tagLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+borderFrame.size.height), dataLabelWidth, labelHeight)];
+    UILabel *tagLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos + labelPadding), dataLabelWidth, labelHeight)];
     [tagLabel setText:@"ACTIVITY"];
     [tagLabel setBackgroundColor:[UIColor clearColor]];
     [tagLabel setTextColor:labelColor];
@@ -836,7 +617,7 @@
     [self.actionsView addSubview:tagLabel];
     
     
-    UILabel *textTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+borderFrame.size.height), textLabelMaxWidth, labelHeight)];
+    UILabel *textTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos + labelPadding), textLabelMaxWidth, labelHeight)];
     [textTagLabel setText:[photo.tag title]];
     [textTagLabel setBackgroundColor:[UIColor clearColor]];
     [textTagLabel setTextColor:textLabelColor];
@@ -846,14 +627,14 @@
     
     // TAG END ////////////////////////////////////////////
     
-    labelYPos += labelHeight + labelPadding;
+    labelYPos += (labelPadding+labelHeight);
     
     UIImageView *border5 = [[UIImageView alloc] initWithFrame:CGRectMake(borderFrame.origin.x, labelYPos, borderWidth, borderFrame.size.height)];
     [border5 setImage:borderImage];
     [self.actionsView addSubview:border5];
     
     // LOCATION
-    UILabel *locationLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+borderFrame.size.height), dataLabelWidth, labelHeight)];
+    UILabel *locationLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+labelPadding), dataLabelWidth, labelHeight)];
     [locationLabel setText:@"ADDRESS"];
     [locationLabel setBackgroundColor:[UIColor clearColor]];
     [locationLabel setTextColor:labelColor];
@@ -861,8 +642,12 @@
     
     [self.actionsView addSubview:locationLabel];
     
-    UILabel *textLocationLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+borderFrame.size.height), textLabelMaxWidth, labelHeight)];
-    [textLocationLabel setText:photo.venue.address];
+    UILabel *textLocationLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+labelPadding), textLabelMaxWidth, labelHeight)];
+    
+    NSString *addressStr = photo.venue.address;
+    if ([addressStr isEqualToString:@"<null>"] || addressStr.length == 0) addressStr = @"-";
+    
+    [textLocationLabel setText:addressStr];
     [textLocationLabel setBackgroundColor:[UIColor clearColor]];
     [textLocationLabel setTextColor:textLabelColor];
     [textLocationLabel setFont:labelFont];
@@ -871,7 +656,7 @@
     
     // LOCATION END ////////////////////////////////////////////
     
-    labelYPos += labelHeight + labelPadding;
+    labelYPos += (labelPadding+labelHeight);
     
     
     UIImageView *border3 = [[UIImageView alloc] initWithFrame:CGRectMake(borderFrame.origin.x, labelYPos, borderWidth, borderFrame.size.height)];
@@ -879,7 +664,7 @@
     [self.actionsView addSubview:border3];
     
     // CITY
-    UILabel *cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+borderFrame.size.height), dataLabelWidth, labelHeight)];
+    UILabel *cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(dataLabelXPos, (labelYPos+labelPadding), dataLabelWidth, labelHeight)];
     [cityLabel setText:@"CITY"];
     [cityLabel setBackgroundColor:[UIColor clearColor]];
     [cityLabel setTextColor:labelColor];
@@ -888,7 +673,7 @@
     [self.actionsView addSubview:cityLabel];
     
     
-    UILabel *textCityLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+borderFrame.size.height), textLabelMaxWidth, labelHeight)];
+    UILabel *textCityLabel = [[UILabel alloc] initWithFrame:CGRectMake(textLabelXPos, (labelYPos+labelPadding), textLabelMaxWidth, labelHeight)];
     [textCityLabel setText:[photo.city title]];
     [textCityLabel setBackgroundColor:[UIColor clearColor]];
     [textCityLabel setTextColor:textLabelColor];
@@ -899,7 +684,7 @@
     // CITY END ////////////////////////////////////////////
     
     
-    labelYPos += labelHeight + labelPadding;
+    labelYPos += (labelPadding+labelHeight);
     
     
     UIImageView *border4 = [[UIImageView alloc] initWithFrame:CGRectMake(borderFrame.origin.x, labelYPos, borderWidth, borderFrame.size.height)];
@@ -912,8 +697,8 @@
     CGFloat fullBtnWidth = 262.0;
     CGFloat fullBtnHeight = 37.0;
     CGFloat btnXPos = 19.0;
-    CGFloat btnYPos = 140.0;
-    CGFloat buttonPadding = 7.0;
+    CGFloat btnYPos = 150.0;
+    CGFloat buttonPadding = 4.0;
     
     UIButton *addToGuideBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [addToGuideBtn setFrame:CGRectMake(btnXPos, btnYPos, fullBtnWidth, fullBtnHeight)];
@@ -995,6 +780,11 @@
     [recommendBtn addTarget:self action:@selector(recommendButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     
     [self.actionsView addSubview:recommendBtn];
+}
+
+- (void)updateLovesCountLabel {
+
+    [self.lovesCountButton setTitle:[NSString stringWithFormat:@"%i", [self.photo.lovesCount intValue]] forState:UIControlStateNormal];
 }
 
 

@@ -37,7 +37,6 @@
 	NSNumber *longitude;
 	
 	IBOutlet UITableView *placesTable;
-	IBOutlet UIButton *mapItBtn;
 }
 
 @property (nonatomic, retain) id <PlacesDelegate> delegate;
@@ -52,7 +51,6 @@
 @property (nonatomic, retain) IBOutlet RLNoteView *tipView;
 
 @property (nonatomic, retain) IBOutlet UITableView *placesTable;
-@property (nonatomic, retain) IBOutlet UIButton *mapItBtn;
 
 - (IBAction)mapItButtonTapped:(id)sender;
 - (IBAction)goBack:(id)sender;

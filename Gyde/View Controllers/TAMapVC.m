@@ -275,6 +275,9 @@
     // Update the label at the bottom of the mapContainer to display the latest fetched address
     NSString *locationAddress = self.photo.venue.address;
     
+    if ([locationAddress isEqualToString:@"<null>"] || locationAddress.length == 0)
+        locationAddress = @"-";
+    
     if ([locationAddress length] > 0) self.addressLabel.text = locationAddress;
     
     CGFloat maxWidth = 270;

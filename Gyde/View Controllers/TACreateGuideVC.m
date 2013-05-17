@@ -111,6 +111,12 @@
 	// Retain the usernames that were selected 
 	// for this Guide to be recommend to
 	self.recommendToUsernames = usernames;
+    
+    if (self.recommendToUsernames.count > 0) {
+        
+        NSString *imageName = (self.recommendToUsernames.count > 0) ? @"submit-recommend-button-on.png" : @"submit-recommend-button.png";
+        [self.recommendBtn setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
+    }
 }
 
 
@@ -152,6 +158,10 @@
     }
     
     self.shareOnTwitter = !self.shareOnTwitter;
+    
+    NSString *imageName = (self.shareOnTwitter) ? @"submit-tweet-button-on.png" : @"submit-tweet-button.png";
+    UIButton *twitterBtn = (UIButton *)sender;
+    [twitterBtn setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
 }
 
 // The submit button was tapped by the user
@@ -190,11 +200,11 @@
 	NSString *usernames = @"";
     NSString *desc = self.descriptionField.text;
 	
-	if ([self.recommendToUsernames count] > 0)
-		usernames = [NSString stringWithFormat:@"&rec_usernames=%@", [self.recommendToUsernames componentsJoinedByString:@","]];	
+//	if ([self.recommendToUsernames count] > 0)
+//		usernames = [NSString stringWithFormat:@"&rec_usernames=%@", [self.recommendToUsernames componentsJoinedByString:@","]];	
 	
 	// Create the URL that will be used to authenticate this user    
-    NSDictionary *params = @{ @"username" : username, @"title" : title, @"city" : city, @"tag" : tagID, @"description" : desc, @"imageIDs" : imageIDs, @"private" : @"0", @"token" : [self appDelegate].sessionToken, @"rec_usernames" : usernames };
+    NSDictionary *params = @{ @"username" : username, @"title" : title, @"city" : city, @"tag" : tagID, @"description" : desc, @"imageIDs" : imageIDs, @"private" : @"0", @"token" : [self appDelegate].sessionToken };
     
     [[GlooRequestManager sharedManager] post:@"addguide" params:params
                                dataLoadBlock:^(NSDictionary *json) {}
@@ -216,8 +226,9 @@
                                      if (self.shareOnTwitter) {
                                          
 #warning TO DO: adjust urlPath so it doesn't need to have prefix attached
-                                         NSString *initialText = [NSString stringWithFormat:@"%@ %@%@", json[@"guide"][@"title"], FRONT_END_ADDRESS, json[@"guide"][@"urlpath"]];
-                                         [self sharePhotoOnTwitterWithText:initialText];
+                                         NSString *initialText = [NSString stringWithFormat:@"%@", json[@"guide"][@"title"]];
+                                         NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, json[@"guide"][@"urlpath"]]];
+                                        [self sharePhotoOnTwitterWithText:initialText url:url];
                                      }
                                      
                                      if (self.addToFacebook) {
@@ -326,7 +337,7 @@
 }
 
 
-- (void)sharePhotoOnTwitterWithText:(NSString *)initialText {
+- (void)sharePhotoOnTwitterWithText:(NSString *)initialText url:(NSURL *)url {
     
     NSString *tweetText = [NSString stringWithFormat:@"Via Gyde for iOS:%@", initialText];
     
@@ -340,6 +351,7 @@
                 NSLog(@"service available");
                 SLComposeViewController *composeViewController = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
                 [composeViewController setInitialText:tweetText];
+                [composeViewController addURL:url];
                 //[composeViewController addImage:self.photoView.image];
                 [self presentViewController:composeViewController animated:YES completion:nil];
             }
@@ -371,6 +383,7 @@
         if ([TWTweetComposeViewController canSendTweet]) {
             TWTweetComposeViewController *tweetVC = [[TWTweetComposeViewController alloc] init];
             //[tweetVC addImage:self.photoView.image];
+            [tweetVC addURL:url];
             [tweetVC setInitialText:tweetText];
             [self presentModalViewController:tweetVC animated:YES];
         }
@@ -434,6 +447,10 @@
 - (IBAction)checkFacebookSession:(id)sender {
     
     self.addToFacebook = !self.addToFacebook;
+    
+    NSString *imageName = (self.addToFacebook) ? @"submit-facebook-button-on.png" : @"submit-facebook-button.png";
+    UIButton *fbBtn = (UIButton *)sender;
+    [fbBtn setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
     
     if (!self.addToFacebook)
         return;

@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#define SUBMIT_PLACE_ALERT_KEY_DISPLAYED @"kSubmitPlaceAlertKey"
+
 #define SCREEN_WIDTH 320.0
 #define SCREEN_HEIGHT 480.0
 #define TAB_BAR_HEIGHT 49.0

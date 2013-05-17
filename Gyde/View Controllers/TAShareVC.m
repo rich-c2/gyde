@@ -18,7 +18,6 @@
 #import "TAPlacesVC.h"
 #import <Accounts/Accounts.h>
 #import <Twitter/Twitter.h>
-#import "CustomTabBarItem.h"
 #import "TAGuidesListVC.h"
 #import "MyMapAnnotation.h"
 #import "AFHTTPClient.h"
@@ -28,6 +27,8 @@
 #define SUBMIT_ALERT_TAG 9000
 #define MAIN_CONTENT_HEIGHT 367
 #define FACEBOOK_ALERT_TAG 10000
+#define GO_BACK_ALERT_TAG 3000
+#define NO_TWITTER_ACCOUNT_TAG 4000
 
 @interface TAShareVC ()
 
@@ -54,7 +55,28 @@
 	
     [super viewDidLoad];
     
+    self.navigationItem.title = @"SUBMIT PLACE";
+    
     [[UIApplication sharedApplication] setStatusBarHidden:NO];
+    
+    UIButton *backButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [backButton setImage:[UIImage imageNamed:@"nav-bar-back-button.png"] forState:UIControlStateNormal];
+    [backButton setImage:[UIImage imageNamed:@"nav-bar-back-button-on.png"] forState:UIControlStateHighlighted];
+    [backButton setFrame:CGRectMake(0, 0, 57, 27)];
+    [backButton addTarget:self action:@selector(goBack:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *backButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backButton];
+    
+	self.navigationItem.leftBarButtonItem = backButtonItem;
+    
+    
+    UIButton *saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [saveButton setBackgroundImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
+    [saveButton setBackgroundImage:[UIImage imageNamed:@"nav-bar-save-button-on.png"] forState:UIControlStateHighlighted];
+    [saveButton setFrame:CGRectMake(0, 0, 54, 27)];
+    [saveButton addTarget:self action:@selector(submitPhoto:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveButton];
+    
+	self.navigationItem.rightBarButtonItem = saveButtonItem;
     
     
     // Remove top padding from caption text view
@@ -131,7 +153,7 @@
     
     [super viewWillAppear:animated];
     
-    self.navigationController.navigationBarHidden = YES;
+    self.navigationController.navigationBarHidden = NO;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -189,40 +211,6 @@
 	}
 	
 	return shouldChangeText;
-}
-
-
-#pragma UIActionSheetDelegate methods 
-
-- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-	
-	/*
-		Determine the title of the twitter account
-		that was selected from the UIActionSheet
-	*/
-	
-	if (buttonIndex != 0) {
-		
-		//NSString *btnTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
-		NSLog(@"retain count:%i", [self.twitterAccounts count]);
-		
-		
-		// Grab the initial Twitter account to tweet from.
-//		ACAccount *twitterAccount = [self.twitterAccounts objectAtIndex:(buttonIndex-1)];
-//		
-//		self.selectedAccountIdentifier = twitterAccount.identifier;
-//		
-//		NSString *userID = [[twitterAccount accountProperties] objectForKey:@"user_id"];
-//		NSLog(@"ACC ID:%@", userID);
-//		
-//		[[self appDelegate] setTwitterUsername:twitterAccount.username];
-//		[[self appDelegate] setTwitterUserID:userID];
-//		[[self appDelegate] setTwitterAccountID:self.selectedAccountIdentifier];
-//		
-//		// Update the user's profile with the twitter user id
-//		[self initUpdateProfileAPI:userID];
-	}
-
 }
 
 
@@ -310,16 +298,16 @@
     NSArray *locationKeys = [locationData allKeys];
 	NSMutableString *formattedAddress = [NSMutableString string];
 	
-	if ([locationKeys containsObject:@"Address"])
+	if ([locationKeys containsObject:@"Address"] && [locationData objectForKey:@"Address"] != [NSNull null])
 		[formattedAddress appendString:[locationData objectForKey:@"Address"]];
 	
-	if ([locationKeys containsObject:@"City"])
+	if ([locationKeys containsObject:@"City"] && [locationData objectForKey:@"City"] != [NSNull null])
 		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"City"]];
 	
-	if ([locationKeys containsObject:@"State"])
+	if ([locationKeys containsObject:@"State"] && [locationData objectForKey:@"State"] != [NSNull null])
 		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"State"]];
 	
-	if ([locationKeys containsObject:@"PostalCode"])
+	if ([locationKeys containsObject:@"PostalCode"] && [locationData objectForKey:@"PostalCode"] != [NSNull null])
 		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"PostalCode"]];
 	
 	self.placeAddressLabel.text = formattedAddress;
@@ -367,11 +355,25 @@
 #pragma mark UIAlertViewDelegate methods
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    
+    if (alertView.tag == GO_BACK_ALERT_TAG) {
+        
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        [defaults setBool:YES forKey:SUBMIT_PLACE_ALERT_KEY_DISPLAYED];
+        [defaults synchronize];
+    
+        if (buttonIndex == 0) {
+        
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }
 	
-	if (alertView.tag == SUBMIT_ALERT_TAG)
+	if (alertView.tag == SUBMIT_ALERT_TAG && !self.shareOnTwitter)
         [self.navigationController popViewControllerAnimated:YES];
     
-    else if (alertView.tag == FACEBOOK_ALERT_TAG) [self.navigationController popViewControllerAnimated:YES];
+    if (alertView.tag == NO_TWITTER_ACCOUNT_TAG)
+        [self.navigationController popViewControllerAnimated:YES];
+    
 }
 
 
@@ -394,6 +396,13 @@
 	// Retain the usernames that were selected 
 	// for this Guide to be recommend to
 	self.recommendToUsernames = usernames;
+    
+    if (self.recommendToUsernames.count > 0) {
+    
+        NSString *imageName = (self.recommendToUsernames.count > 0) ? @"submit-recommend-button-on.png" : @"submit-recommend-button.png";
+        [self.recommendBtn setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
+    }
+        
 }
 
 
@@ -413,6 +422,14 @@
 #pragma MY METHODS 
 
 - (IBAction)goBack:(id)sender {
+    
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:SUBMIT_PLACE_ALERT_KEY_DISPLAYED]) {
+        UIAlertView *av =  [[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"You are about to go back without saving this place. Are you sure you want to go back?"
+                                                     delegate:self cancelButtonTitle:@"Yes" otherButtonTitles:@"Cancel", nil];
+        av.tag = GO_BACK_ALERT_TAG;
+        [av show];
+        return;
+    }
 
 	[self.navigationController popViewControllerAnimated:YES];
 }
@@ -447,6 +464,10 @@
     }
 
     self.shareOnTwitter = !self.shareOnTwitter;
+    
+    NSString *imageName = (self.shareOnTwitter) ? @"submit-tweet-button-on.png" : @"submit-tweet-button.png";
+    UIButton *twitterBtn = (UIButton *)sender;
+    [twitterBtn setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
 }
 
 
@@ -503,10 +524,20 @@
                                  
                                  if ([result isEqualToString:@"ok"]) {
                                      
+                                     NSString *message = @"Your photo was successfully submitted.";
+                                     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success!"
+                                                                                         message:message
+                                                                                        delegate:self
+                                                                               cancelButtonTitle:@"OK"
+                                                                               otherButtonTitles:nil];
+                                     [alertView setTag:SUBMIT_ALERT_TAG];
+                                     [alertView show];
+                                     
                                      if (self.shareOnTwitter) {
                                      
-                                         NSString *initialText = json[@"media"][@"address"][@"title"];
-                                         [self sharePhotoOnTwitterWithText:initialText];
+                                         NSString *initialText = json[@"media"][@"location"][@"name"];
+                                         NSURL *url = [NSURL URLWithString:json[@"media"][@"url"][@"short"]];
+                                         [self sharePhotoOnTwitterWithText:initialText url:url];
                                      }
                                      
                                      if (postToFacebook) {
@@ -553,15 +584,6 @@
                                          NSDictionary *mediaDict = json[@"media"];
                                          [self initAddGuideAPIWithPhoto:mediaDict[@"code"] guideDetails:self.guideData];
                                      }
-                                     
-                                     NSString *message = @"Your photo was successfully submitted.";
-                                     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success!"
-                                                                                         message:message
-                                                                                        delegate:self
-                                                                               cancelButtonTitle:@"OK"
-                                                                               otherButtonTitles:nil];
-                                     [alertView setTag:SUBMIT_ALERT_TAG];
-                                     [alertView show];
                                  }
                                  
                                  else {
@@ -852,6 +874,10 @@
 	[usersVC setUsersMode:UsersModeRecommendTo];
 	[usersVC setSelectedUsername:[self appDelegate].loggedInUsername];
 	[usersVC setDelegate:self];
+    
+    if (self.recommendToUsernames) {
+        [usersVC setSelectedUsers:self.recommendToUsernames];
+    }
 	
 	[self.navigationController pushViewController:usersVC animated:YES];
 }
@@ -862,8 +888,6 @@
     ALAssetsLibrary *assetslibrary = [[ALAssetsLibrary alloc] init];
     __block double latitude;
     __block double longitude;
-    
-    NSLog(@"referenceURL:%@", self.imageReferenceURL);
     
     [assetslibrary assetForURL:self.imageReferenceURL resultBlock:^(ALAsset *asset) {
         
@@ -1154,6 +1178,10 @@
     
     postToFacebook = !postToFacebook;
     
+    NSString *imageName = (postToFacebook) ? @"submit-facebook-button-on.png" : @"submit-facebook-button.png";
+    UIButton *fbBtn = (UIButton *)sender;
+    [fbBtn setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
+    
     if (!postToFacebook)
         return;
 
@@ -1232,7 +1260,7 @@
 
 }
 
-- (void)sharePhotoOnTwitterWithText:(NSString *)initialText {
+- (void)sharePhotoOnTwitterWithText:(NSString *)initialText url:(NSURL *)url {
     
     NSString *tweetText = [NSString stringWithFormat:@"Gyde for iOS: %@", initialText];
 
@@ -1243,10 +1271,33 @@
         {
             if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
             {
-                NSLog(@"service available");
                 SLComposeViewController *composeViewController = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
                 [composeViewController setInitialText:tweetText];
                 [composeViewController addImage:self.photoView.image];
+                [composeViewController addURL:url];
+                
+                // Sets the completion handler.  Note that we don't know which thread the
+                // block will be called on, so we need to ensure that any UI updates occur on the main queue
+                composeViewController.completionHandler = ^(SLComposeViewControllerResult result) {
+                    switch(result) {
+                            //  This means the user cancelled without sending the Tweet
+                        case SLComposeViewControllerResultCancelled:
+                            break;
+                            //  This means the user hit 'Send'
+                        case SLComposeViewControllerResultDone:
+                            break;
+                    }
+                    
+                    //  dismiss the Tweet Sheet
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self dismissViewControllerAnimated:NO completion:^{
+                            NSLog(@"Tweet Sheet has been dismissed.");
+                            [self.navigationController popViewControllerAnimated:YES];
+                        }];
+                    });
+                };
+                
+                // Present
                 [self presentViewController:composeViewController animated:YES completion:nil];
             }
             else
@@ -1267,6 +1318,7 @@
                                                         delegate:self
                                                cancelButtonTitle:@"OK"
                                                otherButtonTitles:nil, nil];
+            [av setTag:NO_TWITTER_ACCOUNT_TAG];
             [av show];
         }
     }
@@ -1275,10 +1327,36 @@
         
         // For TWTweetComposeViewController (iOS 5)
         if ([TWTweetComposeViewController canSendTweet]) {
+            
             TWTweetComposeViewController *tweetVC = [[TWTweetComposeViewController alloc] init];
             [tweetVC addImage:self.photoView.image];
             [tweetVC setInitialText:tweetText];
-            [self presentModalViewController:tweetVC animated:YES];
+            [tweetVC addURL:url];
+            
+            // Sets the completion handler.  Note that we don't know which thread the
+            // block will be called on, so we need to ensure that any UI updates occur on the main queue
+            tweetVC.completionHandler = ^(TWTweetComposeViewControllerResult result) {
+                
+                switch(result) {
+                        //  This means the user cancelled without sending the Tweet
+                    case TWTweetComposeViewControllerResultCancelled:
+                        break;
+                        //  This means the user hit 'Send'
+                    case TWTweetComposeViewControllerResultDone:
+                        break;
+                }
+                
+                //  dismiss the Tweet Sheet
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self dismissViewControllerAnimated:NO completion:^{
+                        NSLog(@"Tweet Sheet has been dismissed.");
+                        [self.navigationController popViewControllerAnimated:YES];
+                    }];
+                });
+            };
+
+            // Present
+            [self presentViewController:tweetVC animated:YES completion:nil];
         }
         
         else {
@@ -1288,6 +1366,7 @@
                                                         delegate:self
                                                cancelButtonTitle:@"OK"
                                                otherButtonTitles:nil, nil];
+            [av setTag:NO_TWITTER_ACCOUNT_TAG];
             [av show];
         }
     }

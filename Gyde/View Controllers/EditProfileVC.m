@@ -43,6 +43,16 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 	
     [super viewDidLoad];
     
+    self.navigationItem.title = @"EDIT PROFILE";
+    
+    UIButton *saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [saveButton setImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
+    [saveButton setImage:[UIImage imageNamed:@"nav-bar-save-button-on.png"] forState:UIControlStateHighlighted];
+    [saveButton setFrame:CGRectMake(0, 0, 54, 27)];
+    [saveButton addTarget:self action:@selector(saveButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveButton];
+	self.navigationItem.rightBarButtonItem = saveButtonItem;
+    
     self.bioView.contentInset = UIEdgeInsetsMake(-4, -8, 0, 0);
 	
 	CGSize newSize = CGSizeMake(self.formScrollView.frame.size.width, 267.0);
@@ -118,7 +128,7 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 
 	[super viewWillAppear:animated];
     
-    self.navigationController.navigationBarHidden = YES;
+    self.navigationController.navigationBarHidden = NO;
 	
 	if (!loading && !profileLoaded) {
 		
@@ -334,8 +344,15 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
             success = YES;
 		
 			// A default city has just been selected. Store it.
-			if ([self.cityLabel.text length] > 0)
+			if ([self.cityLabel.text length] > 0) {
 				[[NSUserDefaults standardUserDefaults] setObject:self.cityLabel.text forKey:kUserDefaultCityKey];
+                
+                User *currUser = [User userWithUsername:[self appDelegate].loggedInUsername inManagedObjectContext:[self appDelegate].managedObjectContext];
+                currUser.city = self.cityLabel.text;
+                
+                NSError *error = nil;
+                [[self appDelegate].managedObjectContext save:&error];
+            }
 		}
 	}
 	

@@ -16,7 +16,7 @@
 	
 	NSFetchRequest *request = [[NSFetchRequest alloc] init];
 	request.entity = [NSEntityDescription entityForName:@"Venue" inManagedObjectContext:context];
-	request.predicate = [NSPredicate predicateWithFormat:@"title = %@", [venueData objectForKey:@"title"]];
+	request.predicate = [NSPredicate predicateWithFormat:@"title ==[c] %@", [locationData objectForKey:@"name"]];
 	
 	NSError *error = nil;
 	venue = [[context executeFetchRequest:request error:&error] lastObject];
@@ -25,7 +25,7 @@
 		
 		// Create a new User
 		venue = [NSEntityDescription insertNewObjectForEntityForName:@"Venue" inManagedObjectContext:context];
-		venue.title = [venueData objectForKey:@"title"];
+		venue.title = [locationData objectForKey:@"name"];
 		venue.address = [venueData objectForKey:@"address"];
 		venue.city = [venueData objectForKey:@"city"];
 		venue.state = [venueData objectForKey:@"state"];
@@ -35,6 +35,19 @@
 		venue.latitude = [NSNumber numberWithDouble:[[venueData objectForKey:@"latitude"] doubleValue]];
 		venue.longitude = [NSNumber numberWithDouble:[[venueData objectForKey:@"longitude"] doubleValue]];
 	}
+    
+    else if (!error && venue) {
+    
+        venue.title = [locationData objectForKey:@"name"];
+		venue.address = [venueData objectForKey:@"address"];
+		venue.city = [venueData objectForKey:@"city"];
+		venue.state = [venueData objectForKey:@"state"];
+		venue.country = [venueData objectForKey:@"country"];
+		venue.postcode = [venueData objectForKey:@"postcode"];
+		
+		venue.latitude = [NSNumber numberWithDouble:[[venueData objectForKey:@"latitude"] doubleValue]];
+		venue.longitude = [NSNumber numberWithDouble:[[venueData objectForKey:@"longitude"] doubleValue]];
+    }
 	
 	return venue;
 }

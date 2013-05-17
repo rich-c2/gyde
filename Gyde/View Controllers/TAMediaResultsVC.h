@@ -41,7 +41,6 @@ typedef enum {
 
 @property (retain, nonatomic) UIButton *selectedTabButton;
 
-@property (retain, nonatomic) IBOutlet UILabel *searchInputTitle;
 @property (retain, nonatomic) IBOutlet UITableView *guidesTable;
 @property (retain, nonatomic) IBOutlet UIScrollView *gridScrollView;
 

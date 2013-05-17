@@ -14,7 +14,6 @@
 #import "XMLFetcher.h"
 #import "StringHelper.h"
 #import "SVProgressHUD.h"
-#import "CustomTabBarItem.h"
 #import "TagsCell.h"
 #import "TAThumbsSlider.h"
 #import "TAScrollVC.h"
@@ -94,14 +93,7 @@
 	
     if (self) {
 		
-//		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-//        
-//        tabItem.customHighlightedImage = [UIImage imageNamed:@"explore_tab_button-on.png"];
-//        tabItem.customStdImage = [UIImage imageNamed:@"explore_tab_button.png"];
-//		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-//		
-//        self.tabBarItem = tabItem;
-//        tabItem = nil;
+        
     }
     return self;
 }
@@ -110,8 +102,53 @@
 	
     [super viewDidLoad];
     
+    // Replace titleView
+    CGRect headerTitleFrame = CGRectMake(0, 0, 200, 44);
+    UIView* _headerTitleSubtitleView = [[UILabel alloc] initWithFrame:headerTitleFrame];
+    _headerTitleSubtitleView.backgroundColor = [UIColor clearColor];
+    
+    UIColor *shadowColor = [UIColor colorWithRed:158.0/255.0 green:11.0/255.0 blue:15.0/255.0 alpha:1.0];
+    
+    CGRect titleFrame = CGRectMake(0, 2, 200, 24);
+    self.titleView = [[UILabel alloc] initWithFrame:titleFrame];
+    self.titleView.backgroundColor = [UIColor clearColor];
+    self.titleView.font = [UIFont fontWithName:@"FreightSansBold" size:18];
+    self.titleView.textAlignment = UITextAlignmentCenter;
+    self.titleView.textColor = [UIColor whiteColor];
+    self.titleView.shadowColor = shadowColor;
+    self.titleView.shadowOffset = CGSizeMake(0, 1);
+    self.titleView.text = @"EXPLORE";
+    self.titleView.adjustsFontSizeToFitWidth = YES;
+    [_headerTitleSubtitleView addSubview:self.titleView];
+    
+    User *currUser = [User userWithUsername:[self appDelegate].loggedInUsername inManagedObjectContext:[self appDelegate].managedObjectContext];
+    
+    CGRect subtitleFrame = CGRectMake(0, 20, 200, 44-24);
+    self.subtitleView = [[UILabel alloc] initWithFrame:subtitleFrame];
+    self.subtitleView.backgroundColor = [UIColor clearColor];
+    self.subtitleView.font = [UIFont fontWithName:@"FreightSansBold" size:11];
+    self.subtitleView.textAlignment = UITextAlignmentCenter;
+    self.subtitleView.textColor = [UIColor whiteColor];
+    self.subtitleView.shadowColor = shadowColor;
+    self.subtitleView.shadowOffset = CGSizeMake(0, 1);
+    self.subtitleView.adjustsFontSizeToFitWidth = YES;
+    [_headerTitleSubtitleView addSubview:self.subtitleView];
+    
+    self.navigationItem.titleView = _headerTitleSubtitleView;
+    
+    //self.navigationItem.title = @"LOADING";
+    
 	// Init our main table data array
 	self.tableData = [NSArray array];
+    
+    UIButton *saveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [saveBtn setImage:[UIImage imageNamed:@"explore-search-button.png"] forState:UIControlStateNormal];
+    [saveBtn setImage:[UIImage imageNamed:@"explore-search-button-on.png"] forState:UIControlStateHighlighted];
+    [saveBtn setFrame:CGRectMake(20, 0, 51, 43)];
+    [saveBtn addTarget:self action:@selector(filterButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveBtn];
+    
+	self.navigationItem.rightBarButtonItem = saveButtonItem;
     
     // How many items do we want to fetch with each API call?
     fetchSize = 6;
@@ -140,8 +177,6 @@
     
     // We are the delegate for the MyCoreLocation object
     [self.locationManager setCaller:self];
-    
-    [self initLocationManager];
     
 }
 
@@ -180,8 +215,15 @@
 	
 	[super viewWillAppear:animated];
     
+    User *currUser = [User userWithUsername:[self appDelegate].loggedInUsername inManagedObjectContext:[self appDelegate].managedObjectContext];
+    self.subtitleView.text = [NSString stringWithFormat:@"Currently in: %@", currUser.city];
+    
+    self.selectedCity = currUser.city;
+    
     // Setup nav bar
 	[self initNavBar];
+    
+    [self createRequests];
 }
 
 
@@ -250,7 +292,7 @@
 - (BOOL)textFieldShouldClear:(UITextField *)textField {
 
     if (textField == self.cityField)
-        self.selectedCity = nil;
+        self.nearbyCity = nil;
     
     else
         self.selectedTag = nil;
@@ -420,10 +462,10 @@
             // When the user clicks the 'Set' button this value will be passed
             // back to the delegate
             City *city = [self.tableData objectAtIndex:[indexPath row]];
-            self.selectedCity = [city title];
+            self.nearbyCity = [city title];
             
             // Display the selected city in the search field
-            self.cityField.text = self.selectedCity;
+            self.cityField.text = self.nearbyCity;
             
             // Hide the table now
             [self hideCitiesTable];
@@ -456,7 +498,27 @@
 	
 	NSLog(@"FOUND LOCATION:%f\%f", self.currentLocation.coordinate.latitude, self.currentLocation.coordinate.longitude);
 	
-	[self startReverseGeocoding];
+	//[self startReverseGeocoding];
+    
+    [self initGetCityApi:^(BOOL success) {
+        
+        if (success) {
+        
+            // Hide the table now
+            [self hideCitiesTable];
+            
+            [self showTagField];
+            
+            [self showSearchButton];
+            
+            [self hideLoading];
+            
+            // Deselect nearby button
+            [self.nearbyBtn setSelected:NO];
+            [self.nearbyBtn setHighlighted:NO];
+            
+        }
+    }];
 }
 
 
@@ -524,7 +586,7 @@
 - (void)initNavBar {
 	
 	// Hide default nav bar
-	self.navigationController.navigationBarHidden = YES;
+	self.navigationController.navigationBarHidden = NO;
 	
 }
 
@@ -532,16 +594,6 @@
 - (IBAction)goBack:(id)sender {
 	
 	[self.navigationController popViewControllerAnimated:YES];
-}
-
-
-- (void)initLocationManager {
-
-    [self.navBarTitle setText:@"LOADING"];
-    
-    // Start find the user's location
-    [self showLoadingWithStatus:@"Updating your location"];
-    [self.locationManager startUpdating];
 }
 
 
@@ -607,7 +659,7 @@
     TAMediaResultsVC *searchResults = [[TAMediaResultsVC alloc] initWithNibName:@"TAMediaResultsVC" bundle:nil];
     [searchResults setTag:[self.selectedTag title]];
     [searchResults setTagID:[self.selectedTag tagID]];
-    [searchResults setCity:self.selectedCity];
+    [searchResults setCity:self.nearbyCity];
     
     [self.navigationController pushViewController:searchResults animated:YES];
 }
@@ -617,8 +669,8 @@
     
 	// Set the new frame for the table
 	CGRect newFrame = self.slidesContainer.frame;
-	newFrame.origin.y = HIDE_SLIDERS_CONTAINER_Y_POS;
-	newFrame.size.height = CGRectGetHeight(self.view.frame) - (44.0 + CGRectGetHeight(self.filterView.frame));
+	newFrame.origin.y = CGRectGetMinY(self.view.frame) + CGRectGetHeight(self.filterView.frame) ;
+	newFrame.size.height = CGRectGetHeight(self.view.frame) - CGRectGetHeight(self.filterView.frame);
 	
 	[UIView animateWithDuration:ANIMATION_DURATION animations:^{
 		
@@ -635,8 +687,8 @@
 	
 	// Set the new frame for the table
 	CGRect newFrame = self.slidesContainer.frame;
-	newFrame.origin.y = REGULAR_SLIDERS_CONTAINER_Y_POS;
-	newFrame.size.height = CGRectGetHeight(self.view.frame) - (44.0);
+	newFrame.origin.y = CGRectGetMinY(self.view.frame);
+	newFrame.size.height = CGRectGetHeight(self.view.frame);
 	
 	[UIView animateWithDuration:ANIMATION_DURATION animations:^{
 		
@@ -653,7 +705,7 @@
 	
 	// Set the new frame for the table
 	CGRect newFrame = self.filterView.frame;
-	newFrame.origin.y = END_FILTER_Y_POS;
+	newFrame.origin.y = CGRectGetMinY(self.view.frame);
 	
 	[UIView animateWithDuration:ANIMATION_DURATION animations:^{
 		
@@ -676,7 +728,7 @@
 	
 	// Set the new frame for the table
 	CGRect newFrame = self.filterView.frame;
-	newFrame.origin.y = START_FILTER_Y_POS;
+	newFrame.origin.y = CGRectGetMinY(self.view.frame) - CGRectGetHeight(self.filterView.frame);
 	
 	[UIView animateWithDuration:ANIMATION_DURATION animations:^{
 		
@@ -726,7 +778,7 @@
     self.selectedCity = subLocality;
     
     // City has been found - update the nav bar title
-    [self.navBarTitle setText:[self.selectedCity uppercaseString]];
+    [self.subtitleView setText:[self.selectedCity uppercaseString]];
     
     [self createThumbsRequests];
     
@@ -734,106 +786,32 @@
 }
 
 
-- (void)retrieveLocationData {
-	
-	// Create JSON call to retrieve dummy City values
-	NSString *methodName = @"geocode";
-	NSString *yahooURL = @"http://where.yahooapis.com/";
-	NSString *yahooAPIKey = @"UvRWaq30";
-	
-	NSString *urlString = [NSString stringWithFormat:@"%@%@?q=%f,%f&gflags=R&appid=%@", yahooURL, methodName, self.currentLocation.coordinate.latitude, self.currentLocation.coordinate.longitude, yahooAPIKey];
-	NSLog(@"YAHOO URL:%@", urlString);
-	
-	NSURL *url = [urlString convertToURL];
-	
-	// Create the request.
-	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-														   cachePolicy:NSURLRequestUseProtocolCachePolicy
-													   timeoutInterval:45.0];
-	[request setValue:@"text/xml" forHTTPHeaderField:@"Content-Type"];
-	[request setHTTPMethod:@"GET"];
-	
-    if (cityFetcher) {
-        
-		[cityFetcher cancel];
-		cityFetcher = nil;
-	}
+- (void)initGetCityApi:(void(^)(BOOL success))completionBlock {
     
+    NSString *latString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.latitude];
+    NSString *lngString = [NSString stringWithFormat:@"%f", self.currentLocation.coordinate.longitude];
+    NSDictionary *params = @{ @"lat" : latString, @"lng" : lngString };
     
-	// XML Fetcher
-	cityFetcher = [[XMLFetcher alloc] initWithURLRequest:request xPathQuery:@"//ResultSet" receiver:self action:@selector(receivedYahooResponse:)];
-	[cityFetcher start];
+    [[GlooRequestManager sharedManager] post:@"getcity"
+                                      params:params
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 if ([json[@"result"] isEqualToString:@"ok"]) {
+                                     
+                                     self.nearbyCity =  json[@"city"];
+                                     [self.cityField setText:self.nearbyCity];
+                                     
+                                     completionBlock(YES);
+                                 }
+                                 
+                                 else {
+                                     
+                                     completionBlock(NO);
+                                 }
+                             }
+                                  viewForHUD:nil];
 }
-
-
-// Example fetcher response handling
-- (void)receivedYahooResponse:(XMLFetcher *)aFetcher {
-    
-    if (![aFetcher isEqual:cityFetcher])
-        return;
-	
-	BOOL requestSuccess = NO;
-	BOOL errorDected = NO;
-	
-	//NSLog(@"PRINTING YAHOO DATA:%@",[[NSString alloc] initWithData:theXMLFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	// IF STATUS CODE WAS OKAY (200)
-	if ([cityFetcher statusCode] == 200) {
-		
-		// XML Data was returned from the API successfully
-		if (([cityFetcher.data length] > 0) && ([cityFetcher.results count] > 0)) {
-			
-			requestSuccess = YES;
-			
-			XPathResultNode *versionsNode = [cityFetcher.results lastObject];
-			
-			// loop through the children of the <registration> node
-			for (XPathResultNode *child in versionsNode.childNodes) {
-				
-				if ([[child name] isEqualToString:@"ErrorMessage"]) {
-					
-					errorDected = ([[child contentString] isEqualToString:@"No error"] ? NO : YES);
-				}
-				
-				else if ([[child name] isEqualToString:@"Result"]) {
-					
-					for (XPathResultNode *childNode in child.childNodes) {
-						
-						if ([[childNode name] isEqualToString:@"city"] && [[childNode contentString] length] > 0) { 
-							
-							self.selectedCity = [childNode contentString];
-						}
-					}
-				}
-			}
-		}
-	}
-    
-	if (requestSuccess && !errorDected) {
-		
-        // City has been found - update the nav bar title
-        [self.navBarTitle setText:[self.selectedCity uppercaseString]];
-        
-        [self createThumbsRequests];
-	}
-	else {
-		
-		UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Sorry!" message:@"We were unable to locate your current city. Please search for one." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-		[av show];
-	}
-	
-	[self hideLoading];
-    
-    cityFetcher = nil;	
-	
-}
-
-
-- (void)showLoadingWithStatus:(NSString *)status {
-	
-	[SVProgressHUD showInView:self.view status:status networkIndicator:YES posY:-1 maskType:SVProgressHUDMaskTypeClear];
-}
-
 
 - (void)hideLoading {
 	
@@ -932,6 +910,94 @@
 	}
 	
 	return guideDictionaries;
+}
+
+
+- (void)createRequests {
+
+    NSString *defaultCity = self.selectedCity;
+    NSString *apiMethodName = @"FindMedia";
+    NSString *token = [[self appDelegate] sessionToken];
+    NSString *username =  [self appDelegate].loggedInUsername;
+    NSInteger pageNum = 0;
+    
+    NSDictionary *params = @{ @"username" : [self appDelegate].loggedInUsername, @"city" : defaultCity,  @"pg" : @"0",  @"sz" : @"10", @"sort" : @"popular", @"token" : [[self appDelegate] sessionToken] };
+    
+    [[GlooRequestManager sharedManager] post:@"FindMedia" params:params
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                                                  
+                                 // Build an array from the dictionary for easy access to each entry
+                                 self.featuredPhotos = [[self appDelegate] serializePhotoData:[json objectForKey:@"media"]];
+                                 
+                                 NSMutableArray *photoDictionaries = [self createSliderData:self.featuredPhotos];
+                                 [self.popularPhotosSlider setImages:photoDictionaries];
+                                 
+                                 // Hide the slider's progress bar
+                                 [self.popularPhotosSlider.progressBar setHidden:YES];
+                                 
+                                 featuredPhotosLoaded = YES;
+                                 
+                             } viewForHUD:nil];
+    
+    
+    // Convert string to data for transmission
+    NSDictionary *recentPlacesParams = @{ @"username" : [self appDelegate].loggedInUsername, @"city" : defaultCity,  @"pg" : @"0",  @"sz" : @"10", @"sort" : @"latest", @"token" : [[self appDelegate] sessionToken] };
+    
+    [[GlooRequestManager sharedManager] post:@"FindMedia" params:recentPlacesParams
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 // Build an array from the dictionary for easy access to each entry
+                                 self.recentPhotos = [[self appDelegate] serializePhotoData:[json objectForKey:@"media"]];
+                                 
+                                 NSMutableArray *photoDictionaries = [self createSliderData:self.recentPhotos];
+                                 [self.recentPhotosSlider setImages:photoDictionaries];
+                                 
+                                 // Hide the slider's progress bar
+                                 [self.recentPhotosSlider.progressBar setHidden:YES];
+                                 
+                                 recentPhotosLoaded = YES;
+                                 
+                             } viewForHUD:nil];
+    
+    
+    NSDictionary *popularGuidesParams = @{ @"city" : defaultCity, @"pg" : @"0",  @"sz" : @"10", @"token" : [[self appDelegate] sessionToken] };
+    [[GlooRequestManager sharedManager] post:@"popularguides" params:popularGuidesParams
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 // Build an array from the dictionary for easy access to each entry
+                                 self.popularGuides = [[self appDelegate] serializeGuideData:[json objectForKey:@"guides"]];
+                                 
+                                 NSMutableArray *photoDictionaries = [self createSliderDataWithGuides:self.popularGuides];
+                                 
+                                 [self.popularGuidesSlider setImages:photoDictionaries];
+                                 
+                                 // Hide the slider's progress bar
+                                 [self.popularGuidesSlider.progressBar setHidden:YES];
+                                 
+                                 popularGuidesLoaded = YES;
+                                 
+                             } viewForHUD:nil];
+    
+    NSDictionary *latestGuidesParams = @{ @"city" : defaultCity, @"pg" : @"0",  @"sz" : @"10", @"token" : [[self appDelegate] sessionToken] };
+    [[GlooRequestManager sharedManager] post:@"latestguides" params:latestGuidesParams
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 // Build an array from the dictionary for easy access to each entry
+                                 self.recentGuides = [[self appDelegate] serializeGuideData:[json objectForKey:@"guides"]];
+                                 
+                                 NSMutableArray *photoDictionaries = [self createSliderDataWithGuides:self.recentGuides];
+                                 [self.recentGuidesSlider setImages:photoDictionaries];
+                                 
+                                 // Hide the slider's progress bar
+                                 [self.recentGuidesSlider.progressBar setHidden:YES];
+                                 
+                                 featuredGuidesLoaded = YES;
+                                 
+                             } viewForHUD:nil];
 }
 
 

@@ -32,6 +32,16 @@
 	
     [super viewDidLoad];
     
+    self.navigationItem.title = @"MAP IT";
+    
+    UIButton *saveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [saveBtn setImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
+    [saveBtn setImage:[UIImage imageNamed:@"nav-bar-save-button-on.png"] forState:UIControlStateHighlighted];
+    [saveBtn setFrame:CGRectMake(0, 0, 54, 27)];
+    [saveBtn addTarget:self action:@selector(saveLocation:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveBtnItem = [[UIBarButtonItem alloc] initWithCustomView:saveBtn];
+    self.navigationItem.rightBarButtonItem = saveBtnItem;
+    
     // Hide the note view
     [self.tipView hideTipViewWithAnimation:NO completionBlock:^(BOOL finished){}];
     

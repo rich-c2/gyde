@@ -18,16 +18,13 @@
 #define TABLE_HEADER_HEIGHT 9.0
 #define TABLE_FOOTER_HEIGHT 9.0
 
-NSString* const CLIENT_ID = @"DKN1SLXTCU0PUYUXXLNQDO1DYBNX2WZ3GJCXU0FMSZSYMQSK";
-NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZKV";
-
 @interface TAPlacesVC ()
 
 @end
 
 @implementation TAPlacesVC
 
-@synthesize placesTable, mapItBtn, places, latitude, longitude, delegate;
+@synthesize placesTable, places, latitude, longitude, delegate;
 
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -42,6 +39,18 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
 - (void)viewDidLoad {
 	
     [super viewDidLoad];
+    
+    self.navigationItem.title = @"LOCATIONS";
+    
+    UIButton *mapItBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [mapItBtn setImage:[UIImage imageNamed:@"nav-bar-map-it-button.png"] forState:UIControlStateNormal];
+    [mapItBtn setImage:[UIImage imageNamed:@"nav-bar-map-it-button-on.png"] forState:UIControlStateHighlighted];
+    [mapItBtn setFrame:CGRectMake(267, 0, 54, 27)];
+    [mapItBtn addTarget:self action:@selector(mapItButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *mapItButtonItem = [[UIBarButtonItem alloc] initWithCustomView:mapItBtn];
+    
+    self.navigationItem.rightBarButtonItem = mapItButtonItem;
+    
     
     // Hide the note view
     [self.tipView hideTipViewWithAnimation:NO completionBlock:^(BOOL finished){}];
@@ -58,7 +67,6 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
 	self.longitude = nil;
 	
     placesTable = nil;
-    mapItBtn = nil;
     [self setPlacesMap:nil];
     [self setLoadingView:nil];
     [super viewDidUnload];
@@ -258,95 +266,9 @@ NSString* const CLIENT_SECRET = @"GIJHYETIFSBFBMWGRKXJ0TPYZJ0UGRP2B5WRGWD5E5TKFZ
 }
 
 
-- (void)searchVenues {
-	
-	//[self.loadingSpinner startAnimating];
-	
-	NSString *urlString = [NSString stringWithFormat:@"https://api.foursquare.com/v2/venues/search?ll=%f,%f&client_id=%@&client_secret=%@&v=20120703", [self.latitude doubleValue], [self.longitude doubleValue], CLIENT_ID, CLIENT_SECRET];
-	
-	NSURL *url = [urlString convertToURL];
-    
-    // Initialiase the URL Request
-    NSMutableURLRequest *request =(NSMutableURLRequest*)[NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0];
-    
-    // Add the Authorization header with the credentials made above. 
-	[request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-	[request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    [request setHTTPMethod:@"GET"];
-	
-	// HTTPFetcher
-    venuesFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-												   receiver:self
-													 action:@selector(receivedVenuesResponse:)];
-    [venuesFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedVenuesResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-    
-    NSAssert(aFetcher == venuesFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	//NSLog(@"PRINTING VENUES DATA:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	//[self.loadingSpinner stopAnimating];
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-    
-    if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		venuesLoaded = YES;
-        
-        // Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		// Build an array from the dictionary for easy access to each entry
-		NSDictionary *responseDict = [results objectForKey:@"response"];
-		
-		NSMutableArray *newVenues = (NSMutableArray *)[responseDict objectForKey:@"venues"];
-		
-		self.places = newVenues;
-		
-		NSLog(@"venues:%@", self.places);
-    }
-	
-	[self hideLoading];
-	
-	// Reload table
-	[self.placesTable reloadData];
-    
-    [self initMapLocations];
-    
-    venuesFetcher = nil;
-}
-
-
 - (IBAction)goBack:(id)sender {
 
     [self.navigationController popViewControllerAnimated:YES];
-}
-
-
-- (void)showLoading {
-	
-	//[SVProgressHUD showInView:self.view status:nil networkIndicator:YES posY:-1 maskType:SVProgressHUDMaskTypeClear];
-    
-    [self.loadingView setHidden:NO];
-}
-
-
-- (void)hideLoading {
-	
-	//[SVProgressHUD dismissWithSuccess:@"Loaded!"];
-    
-    [self.loadingView setHidden:YES];
 }
 
 

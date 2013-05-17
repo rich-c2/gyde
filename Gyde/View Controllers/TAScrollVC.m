@@ -187,6 +187,10 @@
         [self initLoveAPI:[currPhoto photoID]];
     }
     
+    // Update the context
+    NSError *error = nil;
+    [[self appDelegate].managedObjectContext save:&error];
+    
 }
 
 

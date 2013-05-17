@@ -29,6 +29,8 @@
     IBOutlet UITextField *descriptionField;
 }
 
+@property (nonatomic, retain) IBOutlet UIButton *recommendBtn;
+
 @property (nonatomic, retain) id <GuidesListDelegate> delegate;
 
 @property (nonatomic, retain) NSMutableArray *recommendToUsernames;

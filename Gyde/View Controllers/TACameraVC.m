@@ -13,7 +13,6 @@
 #import "TAShareVC.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MyCoreLocation.h"
-#import "CustomTabBarItem.h"
 #import "CameraOverlayVC.h"
 #import "AppDelegate.h"
 #import "UIImage+fixOrientation.h"
@@ -37,15 +36,7 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
 	
     if (self) {
-		
-//		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-//        
-//        tabItem.customHighlightedImage = [UIImage imageNamed:@"share_tab_button-on.png"];
-//        tabItem.customStdImage = [UIImage imageNamed:@"share_tab_button.png"];
-//		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-		
-//        self.tabBarItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-//        tabItem = nil;
+        
     }
     return self;
 }

@@ -116,6 +116,14 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
     
     self.navigationController.navigationBarHidden = NO;
     
+    User *currUser = [User userWithUsername:[self appDelegate].loggedInUsername inManagedObjectContext:[self appDelegate].managedObjectContext];
+    
+    // Replace the default city value in the menuDictionary
+	NSArray *newCityObjects = [NSArray arrayWithObjects:currUser.city, nil];
+	[self.menuDictionary setValue:newCityObjects forKey:@"Default City"];
+
+    [self.settingsTable reloadData];
+    
     [self.settingsTable deselectRowAtIndexPath:[self.settingsTable indexPathForSelectedRow] animated:YES];
     
 }
@@ -128,6 +136,12 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 	[self showLoading];
 	
 	NSString *newCity = [city title];
+    
+    User *currUser = [User userWithUsername:[self appDelegate].loggedInUsername inManagedObjectContext:[self appDelegate].managedObjectContext];
+    currUser.city = newCity;
+    
+    NSError *error = nil;
+    [[self appDelegate].managedObjectContext save:&error];
 	
 	[self initUpdateProfileAPI:newCity];
 	
@@ -479,10 +493,10 @@ static NSString *kUserDefaultCityKey = @"userDefaultCityKey";
 	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
 		
 		// Store incoming data into a string
-		/*NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
+		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
 		 
 		 // Create a dictionary from the JSON string
-		 NSDictionary *results = [jsonString JSONValue];
+		/* NSDictionary *results = [jsonString JSONValue];
 		 
 		 // Build an array from the dictionary for easy access to each entry
 		 NSDictionary *newUserData = [results objectForKey:@"user"];

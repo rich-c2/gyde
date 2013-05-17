@@ -379,7 +379,6 @@
 - (void)imageLoaded:(UIImage *)image withURL:(NSURL *)url {
 	
 	NSArray *cells = [self.photosTable visibleCells];
-//    [cells retain];
     SEL selector = @selector(imageLoaded:withURL:);
 	
     for (int i = 0; i < [cells count]; i++) {
@@ -388,93 +387,9 @@
         if ([c respondsToSelector:selector]) {
             [c performSelector:selector withObject:image withObject:url];
         }
-//        [c release];
+
 		c = nil;
     }
-	
-//    [cells release];
-}
-
-
-- (void)updateImageGrid {
-	
-	CGFloat gridWidth = self.imagesView.frame.size.width;
-	CGFloat maxXPos = gridWidth - GRID_IMAGE_WIDTH;
-	
-	CGFloat startXPos = 0.0;
-	CGFloat xPos = startXPos;
-	CGFloat yPos = 0.0;
-	
-	// Number of new rows to add, and how many have already
-	// been added previously
-	NSInteger subviewsCount = [self.imagesView.subviews count];
-	
-	// Set what the next tag value should be
-	NSInteger tagCounter = IMAGE_VIEW_TAG + subviewsCount;
-	
-	// If images have previously been added, calculate where to 
-	// start placing the next batch of images
-	if (subviewsCount > 0) {
-		
-		NSInteger rowCount = subviewsCount/4;
-		NSInteger leftOver = subviewsCount%4;
-		
-		// Calculate starting xPos & yPos
-		xPos = (leftOver * (GRID_IMAGE_WIDTH + IMAGE_PADDING));
-		yPos = (rowCount * (GRID_IMAGE_HEIGHT + IMAGE_PADDING));
-	}
-	
-	for (int i = subviewsCount; i < [self.photos count]; i++) {
-		
-		// Retrieve Image object from array, and construct
-		// a URL string for the thumbnail image
-		Photo *photo = [self.photos objectAtIndex:i];
-		NSString *thumbURL = [photo thumbURL];
-		
-		// Create GridImage, set its Tag and Delegate, and add it 
-		// to the imagesView
-		CGRect newFrame = CGRectMake(xPos, yPos, GRID_IMAGE_WIDTH, GRID_IMAGE_HEIGHT);
-		GridImage *gridImage = [[GridImage alloc] initWithFrame:newFrame imageURL:thumbURL];
-		[gridImage setTag:tagCounter];
-		[gridImage setDelegate:self];
-		[self.imagesView addSubview:gridImage];
-		
-		// Update xPos & yPos for new image
-		xPos += (GRID_IMAGE_WIDTH + IMAGE_PADDING);
-		
-		// Update tag for next image
-		tagCounter++;
-		
-		if (xPos > maxXPos) {
-			
-			xPos = startXPos;
-			yPos += (GRID_IMAGE_HEIGHT + IMAGE_PADDING);
-		}
-	}
-	
-	// Update size of the relevant views
-	[self updateGridLayout];
-}
-
-
-- (void)updateGridLayout {
-	
-	// Updated number of how many rows there are
-	NSInteger rowCount = [[self.imagesView subviews] count]/4;
-	NSInteger leftOver = [[self.imagesView subviews] count]%4;
-	if (leftOver > 0) rowCount++;
-	
-	// Update the scroll view's content height
-	CGRect imagesViewFrame = self.imagesView.frame;
-	CGFloat gridRowsHeight = (rowCount * (GRID_IMAGE_HEIGHT + IMAGE_PADDING));
-	CGFloat sViewContentHeight = imagesViewFrame.origin.y + gridRowsHeight + IMAGE_PADDING;
-	
-	// Set image view frame height
-	imagesViewFrame.size.height = gridRowsHeight;
-	[self.imagesView setFrame:imagesViewFrame];
-	
-	// Adjust content height of the scroll view
-	[self.gridScrollView setContentSize:CGSizeMake(self.gridScrollView.frame.size.width, sViewContentHeight)];
 }
 
 
@@ -966,6 +881,7 @@
      completionHandler:^(FBRequestConnection *connection,
                          id result,
                          NSError *error) {
+         NSLog(@"HEY");
 //         NSString *alertText;
 //         if (error) {
 //             alertText = [NSString stringWithFormat:

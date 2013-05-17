@@ -73,7 +73,6 @@ typedef enum {
 			
 	IBOutlet UIScrollView *slidesContainer;
     
-	XMLFetcher *cityFetcher;
 	HTTPFetcher	*citySearchFetcher;
 	HTTPFetcher *popularFetcher;
     HTTPFetcher *guidesFetcher;
@@ -94,6 +93,9 @@ typedef enum {
 	CLLocation *currentLocation;
 	BOOL useCurrentLocation;
 }
+
+@property (nonatomic, strong) UILabel *titleView;
+@property (nonatomic, strong) UILabel *subtitleView;
 
 @property (nonatomic, strong) MKReverseGeocoder *reverseGeocoder;
 
@@ -139,6 +141,7 @@ typedef enum {
 
 @property (nonatomic, retain) Tag *selectedTag;
 @property (nonatomic, retain) NSString *selectedCity;
+@property (nonatomic, retain) NSString *nearbyCity;
 @property (nonatomic, retain) IBOutlet UIButton *filterBtn;
 @property (nonatomic, retain) IBOutlet UIButton *nearbyBtn;
 @property (nonatomic, retain) IBOutlet UIButton *searchBtn;

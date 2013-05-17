@@ -63,13 +63,24 @@
 
 
 - (void)initImage:(NSString *)urlString {
+    
+    AFImageRequestOperation *operation = [AFImageRequestOperation imageRequestOperationWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]
+                                                                              imageProcessingBlock:nil
+                                                                                         cacheName:nil
+                                                                                           success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+                                                                                           
+                                                                                               [self.cellSpinner stopAnimating];
+                                                                                               UIImage *rounded = [image roundedCornerImage:12 borderSize:3];
+                                                                                               [self.thumbView setImage:rounded];
+                                                                                           }
+                                                                                           failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
+                                                                                               
+                                                                                               [self.cellSpinner stopAnimating];
+                                                                                               UIImage *placeHolder = [UIImage imageNamed:@"avatar_placeholder.png"];
+                                                                                               UIImage *rounded = [placeHolder roundedCornerImage:12 borderSize:3];
+                                                                                               [self.thumbView setImage:rounded];
+                                                                                           }];
 	
-	AFImageRequestOperation *operation = [AFImageRequestOperation imageRequestOperationWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]] success:^(UIImage *requestedImage) {
-		
-        [self.cellSpinner stopAnimating];
-        UIImage *rounded = [requestedImage roundedCornerImage:12 borderSize:3];
-		[self.thumbView setImage:rounded];
-	}];
 	[operation start];
 }
 

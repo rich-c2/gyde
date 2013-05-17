@@ -48,6 +48,7 @@
 						<reference key="NSWindow"/>
 						<reference key="NSNextKeyView" ref="366468853"/>
 						<string key="NSReuseIdentifierKey">_NS:9</string>
+						<int key="IBUIContentMode">5</int>
 						<bool key="IBUIUserInteractionEnabled">NO</bool>
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 						<object class="NSCustomResource" key="IBUIImage">
@@ -915,22 +916,16 @@
 					<string key="className">TAProfileVC</string>
 					<string key="superclassName">UIViewController</string>
 					<dictionary class="NSMutableDictionary" key="actions">
-						<string key="findFriendsButtonTapped:">id</string>
 						<string key="followUserButtonTapped:">id</string>
 						<string key="followersButtonTapped:">id</string>
 						<string key="followingButtonTapped:">id</string>
 						<string key="followingUserButtonTapped:">id</string>
 						<string key="goBack:">id</string>
 						<string key="guidesButtonTapped:">id</string>
-						<string key="myContentButtonTapped:">id</string>
 						<string key="photosButtonTapped:">id</string>
 						<string key="placesButtonTapped:">id</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="actionInfosByName">
-						<object class="IBActionInfo" key="findFriendsButtonTapped:">
-							<string key="name">findFriendsButtonTapped:</string>
-							<string key="candidateClassName">id</string>
-						</object>
 						<object class="IBActionInfo" key="followUserButtonTapped:">
 							<string key="name">followUserButtonTapped:</string>
 							<string key="candidateClassName">id</string>
@@ -955,10 +950,6 @@
 							<string key="name">guidesButtonTapped:</string>
 							<string key="candidateClassName">id</string>
 						</object>
-						<object class="IBActionInfo" key="myContentButtonTapped:">
-							<string key="name">myContentButtonTapped:</string>
-							<string key="candidateClassName">id</string>
-						</object>
 						<object class="IBActionInfo" key="photosButtonTapped:">
 							<string key="name">photosButtonTapped:</string>
 							<string key="candidateClassName">id</string>
@@ -970,11 +961,9 @@
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="outlets">
 						<string key="avatarView">UIImageView</string>
-						<string key="backBtn">UIButton</string>
 						<string key="bioView">UITextView</string>
 						<string key="contentScrollView">UIScrollView</string>
 						<string key="currentlyInLabel">UILabel</string>
-						<string key="findFriendsBtn">UIButton</string>
 						<string key="followUserBtn">UIButton</string>
 						<string key="followersBtn">UIButton</string>
 						<string key="followersLabel">UILabel</string>
@@ -984,20 +973,14 @@
 						<string key="guidesBtn">UIButton</string>
 						<string key="guidesTable">UITableView</string>
 						<string key="modePointerView">UIImageView</string>
-						<string key="myContentBtn">UIButton</string>
 						<string key="photosBtn">UIButton</string>
 						<string key="placesScrollView">UIScrollView</string>
-						<string key="settingsBtn">UIButton</string>
 						<string key="usernameLabel">UILabel</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
 						<object class="IBToOneOutletInfo" key="avatarView">
 							<string key="name">avatarView</string>
 							<string key="candidateClassName">UIImageView</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="backBtn">
-							<string key="name">backBtn</string>
-							<string key="candidateClassName">UIButton</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="bioView">
 							<string key="name">bioView</string>
@@ -1010,10 +993,6 @@
 						<object class="IBToOneOutletInfo" key="currentlyInLabel">
 							<string key="name">currentlyInLabel</string>
 							<string key="candidateClassName">UILabel</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="findFriendsBtn">
-							<string key="name">findFriendsBtn</string>
-							<string key="candidateClassName">UIButton</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="followUserBtn">
 							<string key="name">followUserBtn</string>
@@ -1051,10 +1030,6 @@
 							<string key="name">modePointerView</string>
 							<string key="candidateClassName">UIImageView</string>
 						</object>
-						<object class="IBToOneOutletInfo" key="myContentBtn">
-							<string key="name">myContentBtn</string>
-							<string key="candidateClassName">UIButton</string>
-						</object>
 						<object class="IBToOneOutletInfo" key="photosBtn">
 							<string key="name">photosBtn</string>
 							<string key="candidateClassName">UIButton</string>
@@ -1062,10 +1037,6 @@
 						<object class="IBToOneOutletInfo" key="placesScrollView">
 							<string key="name">placesScrollView</string>
 							<string key="candidateClassName">UIScrollView</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="settingsBtn">
-							<string key="name">settingsBtn</string>
-							<string key="candidateClassName">UIButton</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="usernameLabel">
 							<string key="name">usernameLabel</string>

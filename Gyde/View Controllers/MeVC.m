@@ -19,7 +19,6 @@
 #import "TASettingsVC.h"
 #import "TASimpleListVC.h"
 #import "TAFriendsVC.h"
-#import "CustomTabBarItem.h"
 #import "ProfileGuidesTableCell.h"
 #import "TAGuideDetailsVC.h"
 #import "TAScrollVC.h"
@@ -40,6 +39,11 @@
 #define GRID_IMAGE_HEIGHT 102.0
 #define IMAGE_PADDING 1.0
 
+#define MY_PLACES_CONTROL_INDEX 0
+#define MY_GUIDES_CONTROL_INDEX 1
+#define LOVED_PLACES_CONTROL_INDEX 2
+#define LOVED_GUIDES_CONTROL_INDEX 3
+
 #define START_GRID_Y_POS 16.0
 
 @interface MeVC ()
@@ -51,7 +55,7 @@
 @synthesize username, avatarURL, usernameLabel, currentlyInLabel, avatarView, lovedPlacesScrollView, placesScrollView, guidesTable, guides;
 @synthesize followUserBtn, followingUserBtn, followingBtn, followersBtn, bioView;
 @synthesize contentScrollView, guidesBtn, modePointerView, photos, lovedPhotos, lovedGuides;
-@synthesize followersLabel, followingLabel, lovedGuidesTable;
+@synthesize followersLabel, followingLabel, lovedGuidesTable, segmentedControl;
 
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil observeLogin:(BOOL)observe {
@@ -62,15 +66,6 @@
         
 		// Listen for when the user has logged-in
 		if (observe) {
-			
-//			CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-//			
-//			tabItem.customHighlightedImage = [UIImage imageNamed:@"account_tab_button-on.png"];
-//			tabItem.customStdImage = [UIImage imageNamed:@"account_tab_button.png"];
-//			tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-//			
-//			self.tabBarItem = tabItem;
-//			tabItem = nil;
 			
 			[self initLoginObserver];
 		}
@@ -93,6 +88,11 @@
 	self.photos = [NSMutableArray array];
     self.lovedPhotos = [NSMutableArray array];
     self.lovedGuides = [NSMutableArray array];
+    
+    [self.segmentedControl setWidth:80 forSegmentAtIndex:0];
+    [self.segmentedControl setWidth:80 forSegmentAtIndex:1];
+    [self.segmentedControl setWidth:80 forSegmentAtIndex:2];
+    [self.segmentedControl setWidth:80 forSegmentAtIndex:3];
 	
 	// The fetch size for each API call
     fetchSize = 12;
@@ -108,7 +108,6 @@
 	if ([self.username length] > 0)
 		[self.usernameLabel setText:self.username];
 	
-	//[self.contentScrollView setContentSize:CGSizeMake(self.contentScrollView.frame.size.width, (self.contentScrollView.frame.size.height * 1.5))];
 }
 
 - (void)viewDidUnload {
@@ -355,17 +354,11 @@
 	
 	if (loggedIn == 1) {
 		
-		//[self setupNavBar];
-		
 		// Set the username for this profile
 		// It equals the username of whoever just logged-in
 		self.username = [self appDelegate].loggedInUsername;
 		
 		[self.usernameLabel setText:self.username];
-		
-		//[self showLoading];
-		
-		//[self loadUserDetails];
 		
 		[self.followingUserBtn setHidden:YES];
 		[self.followUserBtn setHidden:YES];
@@ -410,20 +403,6 @@
 }
 
 
-- (IBAction)followUserButtonTapped:(id)sender {
-    
-	// Initiate Follow API
-	[self initFollowAPI];
-}
-
-
-- (IBAction)followingUserButtonTapped:(id)sender {
-    
-	// Initiate Unfollow API
-	[self initUnfollowAPI];
-}
-
-
 #pragma Follow/Unfollow methods
 
 - (void)loadUserDetails {
@@ -435,288 +414,48 @@
 }
 
 
-- (void)initFollowAPI {
-	
-	NSString *postString = [NSString stringWithFormat:@"following=%@&follower=%@&token=%@", self.username, [self appDelegate].loggedInUsername, [self appDelegate].sessionToken];
-	
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"Follow";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	followFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-                                                   receiver:self
-                                                     action:@selector(receivedFollowResponse:)];
-	[followFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedFollowResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	//NSLog(@"DETAILS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-    
-	NSAssert(aFetcher == followFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	BOOL success = NO;
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		if ([[results objectForKey:@"result"] isEqualToString:@"ok"]) success = YES;
-		
-		//NSLog(@"FOLLOW jsonString:%@", jsonString);
-	}
-	
-	// Follow API was successful
-	if (success) {
-		
-		// Hide 'Follow' user button
-		[self.followUserBtn setHidden:YES];
-        
-		// Display 'Following' user button
-		[self.followingUserBtn setHidden:NO];
-	}
-	
-	followFetcher = nil;
-}
-
-
-- (void)initUnfollowAPI {
-    
-	NSString *postString = [NSString stringWithFormat:@"following=%@&follower=%@&token=%@", self.username, [self appDelegate].loggedInUsername, [self appDelegate].sessionToken];
-	
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"Unfollow";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	unfollowFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-                                                     receiver:self
-                                                       action:@selector(receivedUnfollowResponse:)];
-	[unfollowFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedUnfollowResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	//NSLog(@"DETAILS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-    
-	NSAssert(aFetcher == unfollowFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	BOOL success = NO;
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		if ([[results objectForKey:@"result"] isEqualToString:@"ok"]) success = YES;
-		
-		//NSLog(@"UNFOLLOW jsonString:%@", jsonString);
-	}
-	
-	// Follow API was successful
-	if (success) {
-		
-		// Show 'Follow' user button
-		[self.followUserBtn setHidden:NO];
-		
-		// Hide 'Following' user button
-		[self.followingUserBtn setHidden:YES];
-	}
-    
-	unfollowFetcher = nil;
-}
-
-
 #pragma Profile methods
 
 - (void)initProfileAPI {
     
-	NSString *postString = [NSString stringWithFormat:@"username=%@", self.username];
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"Profile";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	profileFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-													receiver:self
-                                                      action:@selector(receivedProfileResponse:)];
-	[profileFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedProfileResponse:(HTTPFetcher *)aFetcher {
+    NSDictionary *params = @{ @"username" : self.username };
     
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	//NSLog(@"PROFILE DETAILS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-    
-	NSAssert(aFetcher == profileFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		profileLoaded = YES;
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		// Build an array from the dictionary for easy access to each entry
-		NSDictionary *newUserData = [results objectForKey:@"user"];
-        
-		// Update name label
-		[self.currentlyInLabel setText:[NSString stringWithFormat:@"Currently in: %@", [newUserData objectForKey:@"city"]]];
-		
-		// Update followers and following buttons
-		[self.followersLabel setText:[newUserData objectForKey:@"followers"]];
-		[self.followingLabel setText:[newUserData objectForKey:@"following"]];
-				
-		// Load avatar image
-		self.avatarURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [newUserData objectForKey:@"avatar"]];
-		[self initAvatarImage:self.avatarURL];
-		
-		//Bio
-		NSString *bioText = [newUserData objectForKey:@"bio"];
-		if ([bioText length] > 0) self.bioView.text = bioText;
-        
-	}
-	
-	// Hide loading view
-	//[self hideLoading];
-	
-	profileFetcher = nil;
+    [[GlooRequestManager sharedManager] post:@"Profile"
+                                      params:params
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 loading = NO;
+                                 profileLoaded = YES;
+                                 
+                                 // Build an array from the dictionary for easy access to each entry
+                                 NSDictionary *newUserData = [json objectForKey:@"user"];
+                                 
+                                 // Update name label
+                                 [self.currentlyInLabel setText:[NSString stringWithFormat:@"Currently in: %@", [newUserData objectForKey:@"city"]]];
+                                 
+                                 // Update followers and following buttons
+                                 [self.followersLabel setText:[newUserData objectForKey:@"followers"]];
+                                 [self.followingLabel setText:[newUserData objectForKey:@"following"]];
+                                 
+                                 // Load avatar image
+                                 self.avatarURL = [NSString stringWithFormat:@"%@%@", FRONT_END_ADDRESS, [newUserData objectForKey:@"avatar"]];
+                                 [self initAvatarImage:self.avatarURL];
+                                 
+                                 //Bio
+                                 NSString *bioText = [newUserData objectForKey:@"bio"];
+                                 if ([bioText length] > 0) self.bioView.text = bioText;
+                             }
+                                  viewForHUD:nil];
 }
 
 
 # pragma isFollowing methods
 
-- (void)detectFollowStatus {
-	
-	loadingIsFollowing = YES;
-	
-	[self initIsFollowingAPI];
-}
-
-
-- (void)initIsFollowingAPI {
-	
-	NSString *postString = [NSString stringWithFormat:@"username=%@&following=%@", [self appDelegate].loggedInUsername, self.username];
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"isFollowing";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	isFollowingFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-                                                        receiver:self
-                                                          action:@selector(receivedIsFollowingResponse:)];
-	[isFollowingFetcher start];
-}
-
-
 - (void)initNavBar {
 	
 	// Hide default nav bar
 	[self.navigationController setNavigationBarHidden:NO animated:YES];
-}
-
-
-// Example fetcher response handling
-- (void)receivedIsFollowingResponse:(HTTPFetcher *)aFetcher {
-    
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
-	
-	//NSLog(@"ISFOLLOWING DETAILS:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-    
-	NSAssert(aFetcher == isFollowingFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	loadingIsFollowing = NO;
-	NSInteger statusCode = [theJSONFetcher statusCode];
-	
-	if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-		
-		isFollowingLoaded = YES;
-		
-		// Store incoming data into a string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		
-		// Create a dictionary from the JSON string
-		NSDictionary *results = [jsonString objectFromJSONString];
-        
-		// Update UI to reflect the result of the API call
-		NSString *result = [results objectForKey:@"following"];
-		[self updateFollowingButton:result];
-	}
-	
-	// Hide loading view
-	[self hideLoading];
-	
-	isFollowingFetcher = nil;
-}
-
-
-- (void)updateFollowingButton:(NSString *)isFollowing {
-    
-	// Enable the correct button
-	// If this use is being followed by the logged-in user
-	// then show the followingUser button. And vice-versa.
-	if ([isFollowing isEqualToString:@"true"])
-		[self.followingUserBtn setHidden:NO];
-	
-	else [self.followUserBtn setHidden:NO];
-}
-
-
-- (IBAction)photosButtonTapped:(id)sender {
-    
-	// Push the following VC onto the stack
-	TAImageGridVC *imageGridVC = [[TAImageGridVC alloc] initWithNibName:@"TAImageGridVC" bundle:nil];
-	[imageGridVC setUsername:self.username];
-	
-	[self.navigationController pushViewController:imageGridVC animated:YES];
 }
 
 
@@ -757,26 +496,6 @@
 }
 
 
-- (void)showLoadingWithStatus:(NSString *)status inView:(UIView *)view {
-	
-	[SVProgressHUD showInView:view status:status networkIndicator:YES posY:-1 maskType:SVProgressHUDMaskTypeClear];
-}
-
-
-- (void)hideLoading {
-	
-	[SVProgressHUD dismiss];
-}
-
-
-- (IBAction)findFriendsButtonTapped:(id)sender {
-	
-	// Push the following VC onto the stack
-	TAFriendsVC *friendsVC = [[TAFriendsVC alloc] initWithNibName:@"TAFriendsVC" bundle:nil];
-	[self.navigationController pushViewController:friendsVC animated:YES];
-}
-
-
 - (void)willLogout {
 	
 	[self clearUIFields];
@@ -793,13 +512,42 @@
     
 	self.username = nil;
 	self.currentlyInLabel.text = nil;
-	[self.followersBtn setTitle:@"0 Followers" forState:UIControlStateNormal];
-	[self.followingBtn setTitle:@"0 Following" forState:UIControlStateNormal];
+	[self.followersBtn setTitle:@"FOLLOWERS" forState:UIControlStateNormal];
+	[self.followingBtn setTitle:@"FOLLOWING" forState:UIControlStateNormal];
 	self.followingUserBtn.hidden = YES;
 	self.followUserBtn.hidden = YES;
 	
 	self.avatarURL = nil;
 	self.avatarView.image = nil;
+}
+
+
+- (IBAction)segmentedControlChanged:(id)sender {
+
+    switch (self.segmentedControl.selectedSegmentIndex) {
+        case MY_PLACES_CONTROL_INDEX:
+            self.contentMode = MeContentModeMyPlaces;
+            [self animateToPlaces];
+            break;
+            
+        case MY_GUIDES_CONTROL_INDEX:
+            self.contentMode = MeContentModeMyGuides;
+            [self animateToGuides];
+            break;
+            
+        case LOVED_PLACES_CONTROL_INDEX:
+            self.contentMode = MeContentModeLovedPlaces;
+            [self animateToLovedPlaces];
+            break;
+            
+        case LOVED_GUIDES_CONTROL_INDEX:
+            self.contentMode = MeContentModeLovedGuides;
+            [self animateToLovedGuides];
+            break;
+            
+        default:
+            break;
+    }
 }
 
 
@@ -838,8 +586,8 @@
 - (void)animateToPlaces {
 	
 	// Set the new frame for the pointer image view
-	CGRect newFrame = self.modePointerView.frame;
-	newFrame.origin.x = POINTER_PLACES_OFFSET;
+	//CGRect newFrame = self.modePointerView.frame;
+	//newFrame.origin.x = POINTER_PLACES_OFFSET;
 	
 	// Fade out the uploads scroll view
 	CGFloat guidesAlpha = 0.0;
@@ -847,7 +595,7 @@
 	
 	[UIView animateWithDuration:ANIMATION_DURATION animations:^{
 		
-		self.modePointerView.frame = newFrame;
+		//self.modePointerView.frame = newFrame;
 		self.guidesTable.alpha = guidesAlpha;
         self.lovedPlacesScrollView.alpha = lovedPlacesAlpha;
         self.lovedGuidesTable.alpha = guidesAlpha;
@@ -1117,77 +865,39 @@
 		// the relevant iVars
 		[self lovedPhotosRequestFinished];
     }
-	
-	// hide loading animation
-	[self hideLoading];
     
     lovedPhotosFetcher = nil;
 }
 
 
 - (void)initUploadsAPI {
-	
-	NSString *postString = [NSString stringWithFormat:@"username=%@&pg=%i&sz=%i", self.username, imagesPageIndex, fetchSize];
-	NSData *postData = [NSData dataWithBytes:[postString UTF8String] length:[postString length]];
-	
-	// Create the URL that will be used to authenticate this user
-	NSString *methodName = @"Uploads";
-	NSURL *url = [[self appDelegate] createRequestURLWithMethod:methodName testMode:NO];
-	
-	// Initialiase the URL Request
-	NSMutableURLRequest *request = [[self appDelegate] createPostRequestWithURL:url postData:postData];
-	
-	// HTTPFetcher
-	uploadsFetcher = [[HTTPFetcher alloc] initWithURLRequest:request
-                                                    receiver:self action:@selector(receivedUploadsResponse:)];
-	[uploadsFetcher start];
-}
-
-
-// Example fetcher response handling
-- (void)receivedUploadsResponse:(HTTPFetcher *)aFetcher {
     
-    HTTPFetcher *theJSONFetcher = (HTTPFetcher *)aFetcher;
+    NSDictionary *params = @{ @"username" : self.username, @"pg" : [NSString stringWithFormat:@"%d", imagesPageIndex], @"sz" : [NSString stringWithFormat:@"%d", fetchSize] };
     
-    NSAssert(aFetcher == uploadsFetcher,  @"In this example, aFetcher is always the same as the fetcher ivar we set above");
-	
-	//NSLog(@"PRINTING FIND MEDIA:%@",[[NSString alloc] initWithData:theJSONFetcher.data encoding:NSASCIIStringEncoding]);
-	
-	loading = NO;
-	
-	NSInteger statusCode = [theJSONFetcher statusCode];
-    
-    if ([theJSONFetcher.data length] > 0 && statusCode == 200) {
-        
-        uploadsLoaded = YES;
-		
-		// Store incoming data into a string
-		// Create a dictionary from the JSON string
-		NSString *jsonString = [[NSString alloc] initWithData:theJSONFetcher.data encoding:NSUTF8StringEncoding];
-		NSDictionary *results = [jsonString objectFromJSONString];
-		
-		NSArray *imagesArray = [results objectForKey:@"media"];
-		
-		// Take the data from the API, convert it
-		// to Photos objects and store them in
-		// self.photos array
-		[self updatePhotosArray:imagesArray];
-		
-		[self userUploadsRequestFinished];
-    }
-	
-	// hide loading
-	[self hideLoading];
-    
-    uploadsFetcher = nil;
+    [[GlooRequestManager sharedManager] post:@"Uploads"
+                                      params:params
+                               dataLoadBlock:^(NSDictionary *json) {}
+                             completionBlock:^(NSDictionary *json) {
+                                 
+                                 loading = NO;
+                                 
+                                 uploadsLoaded = YES;
+                                 
+                                 // Store incoming data into a string
+                                 // Create a dictionary from the JSON string
+                                 NSArray *imagesArray = json[@"media"];
+                                 
+                                 // Take the data from the API, convert it
+                                 // to Photos objects and store them in self.photos array
+                                 [self updatePhotosArray:imagesArray];
+                                 
+                                 [self userUploadsRequestFinished];
+                             }
+                                  viewForHUD:self.placesScrollView];
 }
 
 
 - (void)userUploadsRequestFinished {
-	
-	// update the page index for
-	// the next batch
-	//imagesPageIndex++;
 	
 	// Update the image grid
 	[self updateImageGridForScrollView:self.placesScrollView withArray:self.photos];
@@ -1197,9 +907,8 @@
 /*
  Iterates through the self.images array,
  converts all the Dictionary values to
- Photos (NSManagedObjects) and stores
- them in self.photos array
- */
+ Photos (NSManagedObjects) and stores them in self.photos array
+*/
 - (void)updatePhotosArray:(NSArray *)imagesArray {
     
     if (!self.managedObjectContext) self.managedObjectContext = [self appDelegate].managedObjectContext;

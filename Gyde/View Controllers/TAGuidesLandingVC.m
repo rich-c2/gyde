@@ -20,7 +20,6 @@
 #import "TAGuideDetailsVC.h"
 #import "Photo.h"
 #import "Guide.h"
-#import "CustomTabBarItem.h"
 
 #define THUMBS_SLIDER_HEIGHT 118.0
 #define THUMBS_SLIDER_PADDING 15.0
@@ -36,15 +35,6 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
     if (self) {
-        
-		CustomTabBarItem *tabItem = [[CustomTabBarItem alloc] initWithTitle:@"" image:nil tag:0];
-        
-        tabItem.customHighlightedImage = [UIImage imageNamed:@"guides_tab_button-on.png"];
-        tabItem.customStdImage = [UIImage imageNamed:@"guides_tab_button.png"];
-		tabItem.imageInsets = UIEdgeInsetsMake(6.0, 0.0, -6.0, 0.0);
-		
-        self.tabBarItem = tabItem;
-        tabItem = nil;
         
         
 		// Observe when the user has actually logged-in

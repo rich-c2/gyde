@@ -45,7 +45,6 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    //self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
     // STATUS BAR COLOUR/STYLE
 	[application setStatusBarStyle:UIStatusBarStyleBlackOpaque];
@@ -53,7 +52,7 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
     [self addNavbarAppearanceProxies];
     
     // FLURRY
-    //[Flurry startSession:@"D4T46KDBMSNRFK3S9KHF"];
+    [Flurry startSession:@"D4T46KDBMSNRFK3S9KHF"];
 	
 	// Setup any test/temporary data in here
 	// FOR NOW, the log-in data iset in here
@@ -101,27 +100,6 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 
 	
 	//////////////////////////////////////////////////////////////////////////////////////////
-	
-	
-	// Create a tabbar controller and an array to contain the view controllers
-//    CGFloat screenWidth = 320.0;
-//    CGFloat screenHeight = 480.0;
-//    
-//    // Adding custom tab bar imagery
-//    UIImageView *bgImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tab-bar-bg.png"]];
-//	bgImageView.frame = CGRectMake(0, 0, screenWidth, 49);
-//	
-//	
-//	// Detect what iOS the iPad is running and insert the tab bar background
-//	// image at the appropriate index. If it's OS5 then the image has to be
-//	// placed at index 1.
-//	if ([[[UIDevice currentDevice] systemVersion] floatValue] < 5)
-//		[[self.tabBarController tabBar] insertSubview:bgImageView atIndex:0];
-//	
-//	else [[self.tabBarController tabBar] insertSubview:bgImageView atIndex:1];
-//	
-//	
-//	self.tabBarController.tabBar.frame = CGRectMake(0, (screenHeight - 49), screenWidth, 49);
 	
 	
 	NSMutableArray *localViewControllersArray = [[NSMutableArray alloc] initWithCapacity:5];
@@ -303,13 +281,8 @@ static NSString *kTwitterAccountIDKey = @"twitterAccountIDKey";
 
 - (void)initApp {
 	
-	// TEST LOGIN
-	//[self login];
-	
 	// Setup the pre-defined Tag objects in Core Data
 	[self initTags];
-	
-	//[self initNotificationsManager];
 }
 
 

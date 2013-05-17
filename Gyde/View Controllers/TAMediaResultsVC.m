@@ -49,14 +49,15 @@
 	
     [super viewDidLoad];
     
-    self.photos = [NSMutableArray array];
-    
     // Set our custom nav bar title
     // to display the search input (City/Tag)
     NSString *tagString = @"";
     if (self.tagID) tagString = [NSString stringWithFormat:@"%@", self.tag];
+    self.navigationItem.title = [[NSString stringWithFormat:@"%@ %@", self.city, tagString] uppercaseString];
     
-    [self.searchInputTitle setText:[[NSString stringWithFormat:@"%@ %@", self.city, tagString] uppercaseString]];
+    self.photos = [NSMutableArray array];
+    
+    
     
     // Set the content insets - padding - for the main scroll view
 	[self.gridScrollView setContentInset:UIEdgeInsetsMake(6.0, 0.0, 6.0, 0.0)];
@@ -95,7 +96,6 @@
     self.findMediaRequest = nil;
     self.findGuidesRequest = nil;
 	
-    [self setSearchInputTitle:nil];
     [self setGuidesTable:nil];
     [self setGridScrollView:nil];
     
@@ -115,7 +115,7 @@
 
 	[super viewWillAppear:animated];
     
-    self.navigationController.navigationBarHidden = YES;
+    self.navigationController.navigationBarHidden = NO;
     
     if (self.resultsMode == ResultsModeGuides && !guidesLoaded) {
         

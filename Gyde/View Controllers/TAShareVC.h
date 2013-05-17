@@ -20,7 +20,7 @@
 @class XMLFetcher;
 @class ACAccountStore;
 
-@interface TAShareVC : UIViewController <TagsDelegate, GuidesListDelegate, RecommendsDelegate, PlacesDelegate, UIActionSheetDelegate> {
+@interface TAShareVC : UIViewController <TagsDelegate, GuidesListDelegate, RecommendsDelegate, PlacesDelegate> {
 	
 	// Was the submission of the photo successful?
 	BOOL submissionSuccess;
@@ -58,12 +58,13 @@
 	NSString *selectedAccountIdentifier;
 }
 
-@property (nonatomic, strong) CLGeocoder *reverseGeocoder;
 
 @property (nonatomic, retain) IBOutlet UITextField *captionField;
 @property (nonatomic, retain) IBOutlet UILabel *tagLabel;
 @property (nonatomic, retain) IBOutlet UILabel *cityLabel;
 @property (nonatomic, retain) IBOutlet MKMapView *map;
+
+@property (nonatomic, retain) IBOutlet UIButton *recommendBtn;
 
 @property (nonatomic, retain) IBOutlet UIImageView *photoView;
 
