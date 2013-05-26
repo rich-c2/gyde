@@ -215,9 +215,12 @@ didChangeDragState:(MKAnnotationViewDragState)newState
 		NSNumber *latNum = [NSNumber numberWithDouble:self.currentLocation.coordinate.latitude];
 		NSNumber *lngNum = [NSNumber numberWithDouble:self.currentLocation.coordinate.longitude];
 		
-		NSDictionary *locationData = [NSDictionary dictionaryWithObjectsAndKeys:self.address, @"address", self.city, @"city", self.state, @"state", self.country, @"country", self.postalCode, @"postalCode", latNum, @"lat", lngNum, @"lng", nil];
+		NSDictionary *locationData = [NSDictionary dictionaryWithObjectsAndKeys:self.address, @"Address",
+                                      self.city, @"City", self.state, @"State", self.country, @"Country",
+                                      self.postalCode, @"PostalCode", latNum, @"lat", lngNum, @"lng", nil];
 		
-		NSMutableDictionary *newPlaceData = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.titleField.text, @"name", locationData, @"location", @"0", @"verified", nil];
+		NSMutableDictionary *newPlaceData = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.titleField.text, @"name",
+                                             locationData, @"location", @"0", @"verified", nil];
 
 		// Pass the location that the user has selected
 		// onto the delegate, and pop back to the share VC

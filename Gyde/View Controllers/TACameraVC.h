@@ -22,7 +22,6 @@
     UIView *cameraOverlay;
 	
 	BOOL selectedPhoto;
-	
 	BOOL imageURLProcessed;
 	NSURL *imageReferenceURL;
 
@@ -31,6 +30,8 @@
 
 @property (nonatomic, retain) MyCoreLocation *locationManager;
 @property (nonatomic, retain) CLLocation *currentLocation;
+@property (nonatomic, retain) NSDate *currentLocationDate;
+@property (nonatomic, retain) NSTimer *locationTimer;
 
 @property (nonatomic, retain) UIImagePickerController *cameraUI;
 

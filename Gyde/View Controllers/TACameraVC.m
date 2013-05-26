@@ -54,6 +54,11 @@
 	
 	// We are the delegate for the MyCoreLocation object
 	[self.locationManager setCaller:self];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActive:) name:UIApplicationWillEnterForegroundNotification object:nil];
+    
+    [self startLocationManager:nil];
+    self.locationTimer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(startLocationManager:) userInfo:nil repeats:YES];
 }
 
 - (void)viewDidUnload {
@@ -78,20 +83,20 @@
 
 
 
-- (void)viewDidAppear:(BOOL)animated {
-
-    [super viewDidAppear:animated];
-}
-
 - (void)viewWillAppear:(BOOL)animated {
 
     [super viewWillAppear:animated];
     
-	// Start the location managing - tell it to start updating,
+	// Start the location manager - tell it to start updating,
 	// if it's not already doing so
-	[self startLocationManager:nil];
+    
+	//[self startLocationManager:nil];
+    
+    [self restartLocationTimer];
+    
     self.waitingToSave = NO;
     self.photo = nil;
+    self.imageReferenceURL = nil;
     [self showCameraUI:nil];
 }
 
@@ -104,7 +109,7 @@
 
     [super viewWillDisappear:animated];
     
-    [[UIApplication sharedApplication] setStatusBarHidden:NO];
+    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -150,8 +155,6 @@
             
             [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackOpaque animated:YES];
         }];
-        
-        
     }
     
     else {
@@ -208,6 +211,7 @@
 - (void)updateLocationDidFinish:(CLLocation *)loc {
     
     self.currentLocation = loc;
+    self.currentLocationDate = [NSDate date];
 	
 	// Stop the manager updating
 	[self.locationManager stopUpdating];
@@ -239,13 +243,32 @@
 
 
 - (void)updateLocationDidFailWithError:(NSError *)error {
+    
+    if ([error domain] == kCLErrorDomain) {
+        
+        // Default UIImagePickerDelegate cancel method
+        [self imagePickerControllerDidCancel:self.cameraUI];
+        
+        // Go to Feed tab
+        [[self appDelegate].tabBarController setSelectedIndex:0];
+    
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Location permissions"
+                                                        message:@"You must allow Gyde to track your user location in order to submit place photos. Please check your device's Settings."
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Close"
+                                              otherButtonTitles:nil, nil];
+        [alert show];
+    }
+    
+    else {
 
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Location Error"
-                                                    message:[error description]
-                                                   delegate:nil
-                                          cancelButtonTitle:@"Close"
-                                          otherButtonTitles:nil, nil];
-    [alert show];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Location Error"
+                                                        message:[error description]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Close"
+                                              otherButtonTitles:nil, nil];
+        [alert show];
+    }
 }
 
 
@@ -255,14 +278,17 @@
 	// if the location manager is not already updating the user's location
 	if (!self.locationManager.updating) {
 		
-		//[self.loadingSpinner startAnimating];
-		
-		NSLog(@"LOCATION MANAGER STARTED");
-		
 		[self.locationManager startUpdating];
 	}
 }
 
+
+- (void)didBecomeActive:(id)sender {
+    
+    [self restartLocationTimer];
+
+    NSLog(@"UIApplicationWillEnterForegroundNotification");
+}
 
 // For responding to the user tapping Cancel.
 - (void) imagePickerControllerDidCancel: (UIImagePickerController *) picker {
@@ -279,9 +305,6 @@
 
 // For responding to the user accepting a newly-captured picture or movie
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-	
-	// We have not yet gotten the URL for this Image file
-	imageURLProcessed = NO;
 	
     NSString *mediaType = [info objectForKey: UIImagePickerControllerMediaType];
     UIImage *originalImage, *editedImage, *imageToSave;
@@ -300,10 +323,7 @@
 		// to the imageReferenceURL property
 		if (picker.sourceType == UIImagePickerControllerSourceTypePhotoLibrary) {
 			
-			selectedPhoto = YES;
-			imageURLProcessed = YES;
-			self.imageReferenceURL = [info objectForKey:UIImagePickerControllerReferenceURL];
-            
+			self.imageReferenceURL = [info objectForKey:UIImagePickerControllerReferenceURL];            
             self.photo = imageToSave;
 
             BOOL approved = [self newPhotoReady:YES];
@@ -323,12 +343,16 @@
 		}
 		
 		// If the user just took a photo using the camera
-		if (picker.sourceType == UIImagePickerControllerSourceTypeCamera) { 
+		if (picker.sourceType == UIImagePickerControllerSourceTypeCamera) {
+            
+            // Check that a current location has been found
+            if ([self isValidCurrentLocation]) {
+            
+                [self.locationTimer invalidate];
+                self.locationTimer = nil;
+            }
 			
             //NSLog(@"INFO:%@", [info objectForKey:UIImagePickerControllerMediaMetadata]);
-            
-            selectedPhoto = NO;
-			imageURLProcessed = YES;
             
             // Insert the overlay
             UIImage *resized = [imageToSave resizedImage:CGSizeMake(640.0, 854.0) interpolationQuality:1.0];
@@ -336,9 +360,7 @@
             ImageCropper *cropper = [[ImageCropper alloc] initWithImage:resized];
             [cropper setDelegate:self];
             
-            [picker pushViewController:cropper animated:YES];
-            
-			
+            [picker pushViewController:cropper animated:YES];			
 		}
 	}
 }
@@ -465,31 +487,35 @@
 
 - (BOOL)newPhotoReady:(BOOL)fromCameraRoll {
     
-    if (!fromCameraRoll && self.locationManager.updating) {
-    
-        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Trying to locate you!" message:@"We're trying to detect your current location. Make sure location services are enabled for this app." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-        [av show];
+    if (!fromCameraRoll) {
         
-        return NO;
+        if (self.locationManager.updating) {
+    
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Trying to locate you!"
+                                                         message:@"We're trying to detect your current location. Make sure location services are enabled for this app."
+                                                        delegate:self cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+            [av show];
+            
+            return NO;
+        }
+        
+//        BOOL validCurrentLocation = [self isValidCurrentLocation];
+//        
+//        if (!validCurrentLocation) {
+//            
+//            [self startLocationManager:nil];
+//        
+//            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Trying to locate you!"
+//                                                         message:@"We're trying to detect your current location. Make sure location services are enabled for this app."
+//                                                        delegate:self cancelButtonTitle:@"OK"
+//                                               otherButtonTitles:nil, nil];
+//            [av show];
+//            return NO;
+//        }
     }
     
-	
-	// Check that: the image URL has been found (processed), the image URL is NOT nil
-	// AND the locationManager is NOT currently updating
-	if (imageURLProcessed) {
-		
-//		TAShareVC *shareVC = [[TAShareVC alloc] initWithNibName:@"TAShareVC" bundle:nil];
-//		[shareVC setPhoto:self.photo];
-//        [shareVC setImageReferenceURL:self.imageReferenceURL];
-//		
-//		[self.navigationController pushViewController:shareVC animated:YES];
-		
-		// Clear the image view, for next it needs to be used.
-//		self.photo = nil;
-//		[self setImageReferenceURL:nil];
-        
-        return YES;
-	}
+	return YES;
 }
 
 
@@ -592,6 +618,25 @@
     // Go to Feed tab
     [[self appDelegate].tabBarController setSelectedIndex:0];
 }
+
+
+- (BOOL)isValidCurrentLocation {
+    
+    NSTimeInterval seconds = [[NSDate date] timeIntervalSinceDate:self.currentLocationDate];
+    
+    return ((seconds >= 10) ? NO : YES);
+}
+
+- (void)restartLocationTimer {
+
+    if (!self.locationTimer || ![self.locationTimer isValid]) {
+        
+        [self startLocationManager:nil];
+        self.locationTimer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(startLocationManager:) userInfo:nil repeats:YES];
+    }
+    
+}
+
 
 
 @end

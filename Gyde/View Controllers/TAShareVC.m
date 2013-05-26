@@ -56,25 +56,8 @@
     
     [[UIApplication sharedApplication] setStatusBarHidden:NO];
     
-    UIButton *backButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [backButton setImage:[UIImage imageNamed:@"nav-bar-back-button.png"] forState:UIControlStateNormal];
-    [backButton setImage:[UIImage imageNamed:@"nav-bar-back-button-on.png"] forState:UIControlStateHighlighted];
-    [backButton setFrame:CGRectMake(0, 0, 57, 27)];
-    [backButton addTarget:self action:@selector(goBack:) forControlEvents:UIControlEventTouchUpInside];
-    UIBarButtonItem *backButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backButton];
-    
-	self.navigationItem.leftBarButtonItem = backButtonItem;
-    
-    
-    UIButton *saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [saveButton setBackgroundImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
-    [saveButton setBackgroundImage:[UIImage imageNamed:@"nav-bar-save-button-on.png"] forState:UIControlStateHighlighted];
-    [saveButton setFrame:CGRectMake(0, 0, 54, 27)];
-    [saveButton addTarget:self action:@selector(submitPhoto:) forControlEvents:UIControlEventTouchUpInside];
-    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveButton];
-    
-	self.navigationItem.rightBarButtonItem = saveButtonItem;
-    
+    [self.navigationController setNavigationBarHidden:YES animated:NO];
+    [self.navigationController setNavigationBarHidden:NO animated:NO];
     
     // Remove top padding from caption text view
     //self.captionField.contentInset = UIEdgeInsetsMake(-8,-8,0,0);
@@ -148,12 +131,37 @@
     
     [super viewWillAppear:animated];
     
-    self.navigationController.navigationBarHidden = NO;
+    [self initNavBar];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
 
     [super viewDidAppear:animated];
+}
+
+- (void)initNavBar {
+    
+    //[self.navigationController setNavigationBarHidden:YES animated:NO];
+    [self.navigationController setNavigationBarHidden:NO animated:NO];
+
+    UIButton *backButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [backButton setImage:[UIImage imageNamed:@"nav-bar-back-button.png"] forState:UIControlStateNormal];
+    [backButton setImage:[UIImage imageNamed:@"nav-bar-back-button-on.png"] forState:UIControlStateHighlighted];
+    [backButton setFrame:CGRectMake(0, 0, 57, 27)];
+    [backButton addTarget:self action:@selector(goBack:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *backButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backButton];
+    
+	self.navigationItem.leftBarButtonItem = backButtonItem;
+    
+    
+    UIButton *saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [saveButton setBackgroundImage:[UIImage imageNamed:@"nav-bar-save-button.png"] forState:UIControlStateNormal];
+    [saveButton setBackgroundImage:[UIImage imageNamed:@"nav-bar-save-button-on.png"] forState:UIControlStateHighlighted];
+    [saveButton setFrame:CGRectMake(0, 0, 54, 27)];
+    [saveButton addTarget:self action:@selector(submitPhoto:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *saveButtonItem = [[UIBarButtonItem alloc] initWithCustomView:saveButton];
+    
+	self.navigationItem.rightBarButtonItem = saveButtonItem;
 }
 
 
@@ -331,17 +339,17 @@
     NSArray *locationKeys = [locationData allKeys];
 	NSMutableString *formattedAddress = [NSMutableString string];
 	
-	if ([locationKeys containsObject:@"address"])
-		[formattedAddress appendString:[locationData objectForKey:@"address"]];
+	if ([locationKeys containsObject:@"Address"] && [locationData objectForKey:@"Address"] != [NSNull null])
+		[formattedAddress appendString:[locationData objectForKey:@"Address"]];
 	
-	if ([locationKeys containsObject:@"city"])
-		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"city"]];
+	if ([locationKeys containsObject:@"City"] && [locationData objectForKey:@"City"] != [NSNull null])
+		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"City"]];
 	
-	if ([locationKeys containsObject:@"state"])
-		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"state"]];
+	if ([locationKeys containsObject:@"State"] && [locationData objectForKey:@"State"] != [NSNull null])
+		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"State"]];
 	
-	if ([locationKeys containsObject:@"postalCode"])
-		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"postalCode"]];
+	if ([locationKeys containsObject:@"PostalCode"] && [locationData objectForKey:@"PostalCode"] != [NSNull null])
+		[formattedAddress appendFormat:@" %@", [locationData objectForKey:@"PostalCode"]];
 	
 	self.placeAddressLabel.text = formattedAddress;
 }
@@ -440,6 +448,14 @@
         if (success) {
         
             self.cityLabel.userInteractionEnabled = NO;
+        }
+        
+        else {
+        
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"City error" message:@"There was an error getting your city. Check your network connection and retry by tapping the city label."
+                                                        delegate:self
+                                               cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+            [av show];
         }
     }];
 }
@@ -799,7 +815,7 @@
                 [params setObject:val forKey:@"place_country"];
             }
             
-            if ([key isEqualToString:@"postalCode"]) {
+            if ([key isEqualToString:@"PostalCode"]) {
                 
                 [params setObject:val forKey:@"place_postcode"];
             }
@@ -901,8 +917,8 @@
     
     [assetslibrary assetForURL:self.imageReferenceURL resultBlock:^(ALAsset *asset) {
         
-//        NSDictionary *metadata = asset.defaultRepresentation.metadata;
-//        NSLog(@"IMAGE METADATA:%@", metadata);
+        NSDictionary *metadata = asset.defaultRepresentation.metadata;
+        NSLog(@"IMAGE METADATA:%@", metadata);
         
         CLLocation *loc = ((CLLocation*)[asset valueForProperty:ALAssetPropertyLocation]);
         
@@ -935,14 +951,20 @@
             [self initGetCityApi:^(BOOL success){
             
                 if (!success) {
-                    
-                    self.cityLabel.text = @"Could not detect city. Tap to retry.";
+                
+                    UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"City error" message:@"There was an error getting your city. Check your network connection and retry by tapping the city label."
+                                                                delegate:self
+                                                       cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+                    [av show];
+                
+                    self.cityLabel.text = @"Tap to retry.";
                 
                     // Add single tap gesture recognizer 
                     UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc]
                                                    initWithTarget:self action:@selector(getCity)];
                     tgr.numberOfTapsRequired = 1;
                     tgr.numberOfTouchesRequired = 1;
+                    self.cityLabel.userInteractionEnabled = YES;
                     [self.cityLabel addGestureRecognizer:tgr];
                 }
             }];
@@ -954,7 +976,7 @@
         
     } failureBlock:^(NSError *error) {
         
-        NSLog(@"error:%@", error);
+        NSLog(@"ASSET ERROR:%@", error);
         
         NSString *errorMessage = @"Could not detect your city.";
         [self.cityLabel setText:errorMessage];

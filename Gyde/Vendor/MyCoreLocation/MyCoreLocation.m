@@ -19,7 +19,7 @@
 		
         self.locationManager = [[CLLocationManager alloc] init];
         self.locationManager.delegate = self;
-		self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+		self.locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
 	
 		updating = NO;
 		showErrors = NO;
@@ -28,18 +28,20 @@
     return self;
 }
 
+
 - (void)locationManager:(CLLocationManager *)manager
-    didUpdateToLocation:(CLLocation *)newLocation
-           fromLocation:(CLLocation *)oldLocation {
+     didUpdateLocations:(NSArray *)locations {
+    
+    CLLocation *latestLocation = [locations lastObject];
 	
-	if (newLocation.horizontalAccuracy <= 100) {
+	if (latestLocation.horizontalAccuracy <= 100) {
 		
 		updating = NO;
 	
 		[self.locationManager stopUpdatingLocation];
 		
 		if ([(NSObject *)self.caller respondsToSelector:@selector(updateLocationDidFinish:)])
-			[(NSObject *)self.caller performSelector:@selector(updateLocationDidFinish:) withObject:newLocation];
+			[(NSObject *)self.caller performSelector:@selector(updateLocationDidFinish:) withObject:latestLocation];
 	}
 }
 
