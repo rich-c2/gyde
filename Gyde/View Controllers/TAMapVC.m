@@ -278,12 +278,25 @@
     if ([locationAddress isEqualToString:@"<null>"] || locationAddress.length == 0)
         locationAddress = @"-";
     
-    if ([locationAddress length] > 0) self.addressLabel.text = locationAddress;
+    NSMutableString *formattedAddress = [NSMutableString stringWithFormat:@"%@", locationAddress];
+    
+    if (![self.photo.venue.city isEqualToString:@"<null>"] && self.photo.venue.city.length != 0)
+        [formattedAddress appendFormat:@" %@", self.photo.venue.city];
+    
+    if (![self.photo.venue.state isEqualToString:@"<null>"] && self.photo.venue.state.length != 0)
+        [formattedAddress appendFormat:@" %@", self.photo.venue.state];
+    
+    if (![self.photo.venue.postcode isEqualToString:@"<null>"] && self.photo.venue.postcode.length != 0)
+        [formattedAddress appendFormat:@" %@", self.photo.venue.postcode];
+    
+    // Set the text to the label
+    if ([formattedAddress length] > 0)
+        self.addressLabel.text = formattedAddress;
     
     CGFloat maxWidth = 270;
     CGFloat maxHeight = 35.0;
     CGSize maxSize = CGSizeMake(maxWidth, maxHeight);
-    CGSize addressStringSize = [locationAddress sizeWithFont:self.addressLabel.font
+    CGSize addressStringSize = [formattedAddress sizeWithFont:self.addressLabel.font
                                            constrainedToSize:maxSize
                                                lineBreakMode:self.addressLabel.lineBreakMode];
     
